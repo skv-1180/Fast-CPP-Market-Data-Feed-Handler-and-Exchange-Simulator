@@ -3,6 +3,8 @@
 #include "types.h"
 #include <unordered_map>
 #include <map>
+#include <optional>
+
 
 struct Order
 {
@@ -23,6 +25,13 @@ public:
     OrderStatus cancel_order(OrderId order_id, Quantity quantity);
     void delete_order(OrderId order_id);
     void replace_order(OrderId old_id, OrderId new_id, Quantity quantity, Price price);
+
+    
+    std::optional<Price> best_bid() const;
+    std::optional<Price> best_ask() const;
+    TotalQuantity bid_quantity(Price price) const;
+    TotalQuantity ask_quantity(Price price) const;
+    bool empty() const;
 
     OrderBook(const OrderBook&) = delete;
     OrderBook& operator=(const OrderBook&) = delete;

@@ -86,3 +86,35 @@ void OrderBook::replace_order(OrderId old_id, OrderId new_id, Quantity quantity,
     add_order(new_id, side, quantity, price);
 }
 
+std::optional<Price> OrderBook::best_bid() const
+{
+    if (bids_.empty())
+        return std::nullopt;
+
+    return bids_.begin()->first;
+}
+
+std::optional<Price> OrderBook::best_ask() const
+{
+    if (asks_.empty())
+        return std::nullopt;
+
+    return asks_.begin()->first;
+}
+
+TotalQuantity OrderBook::bid_quantity(Price price) const
+{
+    auto it = bids_.find(price);
+    return (it != bids_.end()) ? it->second : TotalQuantity{0};
+}
+
+TotalQuantity OrderBook::ask_quantity(Price price) const
+{
+    auto it = asks_.find(price);
+    return (it != asks_.end()) ? it->second : TotalQuantity{0};
+}
+
+bool OrderBook::empty() const
+{
+    return orders_.empty();
+}

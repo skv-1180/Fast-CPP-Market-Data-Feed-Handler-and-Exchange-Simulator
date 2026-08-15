@@ -3,7 +3,7 @@
 void Market::add_order(OrderId order_id, Side side, Quantity qty,
                        Symbol symbol, Price price)
 {
-    auto [it, _] = books_.try_emplace(symbol, OrderBook{});
+    auto [it, _] = books_.try_emplace(symbol);
     OrderBook& book = it->second;
     book.add_order(order_id, side, qty, price);
     order_index_[order_id] = &book;
