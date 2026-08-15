@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 
-template <typename OrderBook>
+template <typename Market>
 class Itch50Parser
 {
 public:
@@ -18,5 +18,5 @@ private:
     void delete_order(const char* msg_buffer);
     void replace_order(const char* msg_buffer);
     
-    OrderBook& order_book_;
+    Market& market_;
 };

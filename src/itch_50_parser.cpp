@@ -58,7 +58,7 @@ void Itch50Parser<OrderBook>::add_order(const char* msg_buffer)
     Symbol symbol = read_sym_64_bit(msg_buffer + 24);
     Price price = read_32_bit(msg_buffer + 32);
 
-    order_book_.add_order(order_id, side, quantity, symbol, price);
+    market_.add_order(order_id, side, quantity, symbol, price);
 }
 
 template <typename OrderBook>
@@ -67,7 +67,7 @@ void Itch50Parser<OrderBook>::executed_order(const char* msg_buffer)
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
     Quantity quantity = read_32_bit(msg_buffer + 19);
-    order_book_.executed_order(order_id, quantity);
+    market_.executed_order(order_id, quantity);
 }
 
 template <typename OrderBook>
@@ -77,7 +77,7 @@ void Itch50Parser<OrderBook>::executed_at_price_order(const char* msg_buffer)
     OrderId order_id = read_64_bit(msg_buffer + 11);
     Quantity quantity = read_32_bit(msg_buffer + 19);
     Price price = read_32_bit(msg_buffer + 32);
-    order_book_.executed_at_price_order(order_id, quantity, price);
+    market_.executed_at_price_order(order_id, quantity, price);
 }
 
 template <typename OrderBook>
@@ -86,7 +86,7 @@ void Itch50Parser<OrderBook>::cancel_order(const char* msg_buffer)
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
     Quantity quantity = read_32_bit(msg_buffer + 19);
-    order_book_.cancel_order(order_id, quantity);
+    market_.cancel_order(order_id, quantity);
 }
 
 template <typename OrderBook>
@@ -94,18 +94,16 @@ void Itch50Parser<OrderBook>::delete_order(const char* msg_buffer)
 {
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
-    order_book_.delete_order(order_id);
+    market_.delete_order(order_id);
 }
 
 template <typename OrderBook>
 void Itch50Parser<OrderBook>::replace_order(const char* msg_buffer)
 {
     using namespace md;
-    OrderId original_order_id = read_64_bit(msg_buffer + 11);
-    OrderId new_order_id = read_64_bit(msg_buffer + 19);
+    OrderId old_id = read_64_bit(msg_buffer + 11);
+    OrderId new_id = read_64_bit(msg_buffer + 19);
     Quantity quantity = read_32_bit(msg_buffer + 27);
     Price price = read_32_bit(msg_buffer + 31);
-    order_book_.replace_order(original_order_id, new_order_id, quantity, price);
+    market_.replace_order(old_id, new_id, quantity, price);
 }
-
-int main(){}

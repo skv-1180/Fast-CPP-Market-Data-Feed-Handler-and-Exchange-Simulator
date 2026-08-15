@@ -15,14 +15,17 @@ struct Order
 class OrderBook
 {
 public:
-    explicit OrderBook(){};
+    OrderBook() = default;
 
     void add_order(OrderId order_id, Side side, Quantity quantity, Price price);
-    void executed_order(OrderId order_id, Quantity quantity);
-    void executed_at_price_order(OrderId order_id, Quantity quantity, Price price);
-    void cancel_order(OrderId order_id, Quantity quantity);
+    OrderStatus executed_order(OrderId order_id, Quantity quantity);
+    OrderStatus executed_at_price_order(OrderId order_id, Quantity quantity, Price price);
+    OrderStatus cancel_order(OrderId order_id, Quantity quantity);
     void delete_order(OrderId order_id);
-    void replace_order(OrderId original_order_id, OrderId new_order_id, Quantity quantity, Price price);
+    void replace_order(OrderId old_id, OrderId new_id, Quantity quantity, Price price);
+
+    OrderBook(const OrderBook&) = delete;
+    OrderBook& operator=(const OrderBook&) = delete;
 private:
     std::unordered_map<OrderId, Order> orders_;
     std::map<Price, TotalQuantity, std::greater<int64_t>> bids_;

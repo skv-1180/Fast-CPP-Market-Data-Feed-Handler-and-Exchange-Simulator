@@ -18,3 +18,8 @@ struct BestPrice {
     Price ask = 0;
     Quantity askQty = 0;
 };
+
+enum class OrderStatus {
+    Alive,
+    Removed
+};
