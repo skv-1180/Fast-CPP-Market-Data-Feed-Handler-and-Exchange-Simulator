@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "endian.h"
+#include "utility.h"
 #include "types.h"
 
 template <typename Market>
@@ -27,7 +27,7 @@ class Itch50Parser
             {
                 break;
             }
-            parse_single_message(msg_buffer + 2);
+            parse_single_message(msg_buffer + 2 + i);
             i += msg_len + 2;
         }
 
@@ -36,6 +36,7 @@ class Itch50Parser
 
     void parse_single_message(const char* msg_buffer)
     {
+        ++messages_;
         char type = msg_buffer[0];
         switch (type)
         {
@@ -54,6 +55,11 @@ class Itch50Parser
             case 'U':
                 return replace_order(msg_buffer);
         }
+    }
+
+    uint64_t message_count() const
+    {
+        return messages_;
     }
 
    private:
@@ -112,4 +118,5 @@ class Itch50Parser
     }
 
     Market& market_;
+    uint64_t messages_ = 0; // for measuring performance
 };

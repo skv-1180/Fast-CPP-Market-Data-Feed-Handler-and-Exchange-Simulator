@@ -4,5 +4,6 @@ obj/
 data/
 makefile
 trading_engine
-
+CMakeLists.txt
+build/
 

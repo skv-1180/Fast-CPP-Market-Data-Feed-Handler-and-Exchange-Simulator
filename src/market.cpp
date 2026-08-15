@@ -1,4 +1,6 @@
 #include "market.h"
+#include "utility.h"
+#include <iostream>
 
 void Market::add_order(OrderId order_id, Side side, Quantity qty,
                        Symbol symbol, Price price)
@@ -62,4 +64,38 @@ void Market::replace_order(OrderId oldId, OrderId newId, Quantity qty, Price pri
 
     order_index_.erase(it);
     order_index_[newId] = book;
+}
+
+const OrderBook* Market::find_book(Symbol symbol) const
+{
+    auto it = books_.find(symbol);
+    return (it != books_.end()) ? &it->second : nullptr;
+}
+
+
+void Market::print_best_bid_ask() const
+{
+    using namespace md;
+    for (const auto& it: books_){
+        Symbol symbol = it.first;
+        const auto& book = it.second;
+        
+        auto bid = book.best_bid();
+        auto ask = book.best_ask();
+        
+        std::cout << "Symbol: " << symbol_to_string(symbol) << '\n';
+
+        if (bid)
+            std::cout << "Best bid: " << *bid
+                        << " Qty: " << book.bid_quantity(*bid) << '\n';
+        else
+            std::cout << "Best bid: none\n";
+
+        if (ask)
+            std::cout << "Best ask: " << *ask
+                        << " Qty: " << book.ask_quantity(*ask) << '\n';
+        else
+            std::cout << "Best ask: none\n";
+        
+    }
 }

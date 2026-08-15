@@ -16,6 +16,9 @@ public:
     void replace_order(OrderId oldId, OrderId newId,
                        Quantity qty, Price price);
 
+    const OrderBook* find_book(Symbol symbol) const;
+    void print_best_bid_ask() const; // debugging
+
     Market(const Market&) = delete;
     Market& operator=(const Market&) = delete;
 private:
