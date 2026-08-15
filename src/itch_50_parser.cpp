@@ -1,8 +1,8 @@
-#include "include/itch_50_parser.h"
-
 #include <cstdint>
 
-#include "include/endian.h"
+#include "itch_50_parser.h"
+#include "endian.h"
+#include "types.h"
 
 template <typename OrderBook>
 size_t Itch50Parser<OrderBook>::parse_multiple_message(
@@ -28,7 +28,7 @@ size_t Itch50Parser<OrderBook>::parse_multiple_message(
 template <typename OrderBook>
 void Itch50Parser<OrderBook>::parse_single_message(const char* msg_buffer)
 {
-    char type = msg[0];
+    char type = msg_buffer[0];
     switch (type)
     {
         case 'A':
@@ -54,11 +54,11 @@ void Itch50Parser<OrderBook>::add_order(const char* msg_buffer)
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
     Side side = (msg_buffer[19] == 'B') ? Side::Buy : Side::Sell;
-    Quantity shares = read_32_bit(msg_buffer + 20);
-    Symbol stock = read_sym_64_bit(msg_buffer + 24);
+    Quantity quantity = read_32_bit(msg_buffer + 20);
+    Symbol symbol = read_sym_64_bit(msg_buffer + 24);
     Price price = read_32_bit(msg_buffer + 32);
 
-    order_book_.add_order(order_id, side, shares, stock, price);
+    order_book_.add_order(order_id, side, quantity, symbol, price);
 }
 
 template <typename OrderBook>
@@ -66,8 +66,8 @@ void Itch50Parser<OrderBook>::executed_order(const char* msg_buffer)
 {
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
-    Quantity shares = read_32_bit(msg_buffer + 19);
-    order_book_.executed_order(order_id, shares);
+    Quantity quantity = read_32_bit(msg_buffer + 19);
+    order_book_.executed_order(order_id, quantity);
 }
 
 template <typename OrderBook>
@@ -75,9 +75,9 @@ void Itch50Parser<OrderBook>::executed_at_price_order(const char* msg_buffer)
 {
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
-    Quantity shares = read_32_bit(msg_buffer + 19);
+    Quantity quantity = read_32_bit(msg_buffer + 19);
     Price price = read_32_bit(msg_buffer + 32);
-    order_book_.executed_at_price_order(order_id, shares, price);
+    order_book_.executed_at_price_order(order_id, quantity, price);
 }
 
 template <typename OrderBook>
@@ -85,8 +85,8 @@ void Itch50Parser<OrderBook>::cancel_order(const char* msg_buffer)
 {
     using namespace md;
     OrderId order_id = read_64_bit(msg_buffer + 11);
-    Quantity shares = read_32_bit(msg_buffer + 19);
-    order_book_.cancel_order(order_id, shares);
+    Quantity quantity = read_32_bit(msg_buffer + 19);
+    order_book_.cancel_order(order_id, quantity);
 }
 
 template <typename OrderBook>
@@ -103,7 +103,9 @@ void Itch50Parser<OrderBook>::replace_order(const char* msg_buffer)
     using namespace md;
     OrderId original_order_id = read_64_bit(msg_buffer + 11);
     OrderId new_order_id = read_64_bit(msg_buffer + 19);
-    Quantity shares = read_32_bit(msg_buffer + 27);
+    Quantity quantity = read_32_bit(msg_buffer + 27);
     Price price = read_32_bit(msg_buffer + 31);
-    order_book_.replace_order(original_order_id, new_order_id, shares, price);
+    order_book_.replace_order(original_order_id, new_order_id, quantity, price);
 }
+
+int main(){}
