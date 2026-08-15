@@ -114,6 +114,16 @@ TotalQuantity OrderBook::ask_quantity(Price price) const
     return (it != asks_.end()) ? it->second : TotalQuantity{0};
 }
 
+size_t OrderBook::bid_levels() const
+{
+    return bids_.size();
+}
+
+size_t OrderBook::ask_levels() const
+{
+    return asks_.size();
+}
+
 bool OrderBook::empty() const
 {
     return orders_.empty();

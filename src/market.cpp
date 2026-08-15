@@ -97,5 +97,7 @@ void Market::print_best_bid_ask() const
         else
             std::cout << "Best ask: none\n";
         
+        std::cout << "Bid Levels: " <<  book.bid_levels() << '\n';
+        std::cout << "Ask Levels: " << book.ask_levels() << '\n';
     }
 }

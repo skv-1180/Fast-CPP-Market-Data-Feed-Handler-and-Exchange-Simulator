@@ -30,8 +30,7 @@ int main(int argc, char* argv[])
 
     size_t leftover = 0;
 
-    auto start = std::chrono::steady_clock::now();
-
+    std::chrono::duration<double> parse_time{0};
     while (true)
     {
         file.read(buffer.data() + leftover, BUFFER_SIZE);
@@ -42,15 +41,15 @@ int main(int argc, char* argv[])
 
         size_t bytes = leftover + static_cast<size_t>(n);
 
+        auto start = std::chrono::steady_clock::now();
         size_t consumed = parser.parse_multiple_message(buffer.data(), bytes);
+        auto end = std::chrono::steady_clock::now();
+        parse_time += (end - start);
 
         if (consumed > bytes)
         {
-            std::cerr << "Parser error: consumed "
-                      << consumed
-                      << " bytes from buffer of "
-                      << bytes
-                      << " bytes\n";
+            std::cerr << "Parser error: consumed " << consumed
+                      << " bytes from buffer of " << bytes << " bytes\n";
             return 1;
         }
 
@@ -58,27 +57,16 @@ int main(int argc, char* argv[])
 
         if (leftover > 0)
         {
-            std::memmove(buffer.data(),
-                         buffer.data() + consumed,
-                         leftover);
+            std::memmove(buffer.data(), buffer.data() + consumed, leftover);
         }
     }
 
-    auto end = std::chrono::steady_clock::now();
-
-    double sec = std::chrono::duration<double>(end - start).count();
+    double sec = parse_time.count();    
     uint64_t msgs = parser.message_count();
 
     std::cout << "Messages:   " << msgs << '\n';
     std::cout << "Time:       " << sec << " s\n";
-    std::cout << "Throughput: "
-              << (msgs / sec) / 1e6
-              << " M msg/s\n";
-
-    if (leftover != 0)
-    {
-        std::cout << "Leftover bytes: " << leftover << '\n';
-    }
+    std::cout << "Throughput: " << (msgs / sec) / 1e6 << " M msg/s\n";
 
     market.print_best_bid_ask();
 
