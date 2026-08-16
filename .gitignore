@@ -6,4 +6,5 @@ trading_engine
 CMakeLists.txt
 build/
 result/
-
+network/client
+network/server

@@ -1,4 +1,2 @@
-data/real_data filter=lfs diff=lfs merge=lfs -text
-real_data_500_mb.bin filter=lfs diff=lfs merge=lfs -text
-data/real_data_500_mb.bin filter=lfs diff=lfs merge=lfs -text
 real_data/real_data_500_mb.bin filter=lfs diff=lfs merge=lfs -text
+real_data/real_data_100_mb.bin filter=lfs diff=lfs merge=lfs -text

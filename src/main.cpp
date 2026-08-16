@@ -22,53 +22,65 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Market market;
-    Itch50Parser<Market> parser(market);
-
     constexpr size_t BUFFER_SIZE = 1 << 20;   // 1 MB
+    constexpr int REPEATS = 10;
+
     std::vector<char> buffer(BUFFER_SIZE * 2);
 
-    size_t leftover = 0;
-
     std::chrono::duration<double> parse_time{0};
-    while (true)
+    uint64_t total_msgs = 0;
+
+    for (int iter = 0; iter < REPEATS; ++iter)
     {
-        file.read(buffer.data() + leftover, BUFFER_SIZE);
+        file.clear();
+        file.seekg(0);
 
-        std::streamsize n = file.gcount();
-        if (n <= 0)
-            break;
+        Market market;
+        Itch50Parser<Market> parser(market);
 
-        size_t bytes = leftover + static_cast<size_t>(n);
+        size_t leftover = 0;
 
-        auto start = std::chrono::steady_clock::now();
-        size_t consumed = parser.parse_multiple_message(buffer.data(), bytes);
-        auto end = std::chrono::steady_clock::now();
-        parse_time += (end - start);
-
-        if (consumed > bytes)
+        while (true)
         {
-            std::cerr << "Parser error: consumed " << consumed
-                      << " bytes from buffer of " << bytes << " bytes\n";
-            return 1;
+            file.read(buffer.data() + leftover, BUFFER_SIZE);
+
+            std::streamsize n = file.gcount();
+            if (n <= 0)
+                break;
+
+            size_t bytes = leftover + static_cast<size_t>(n);
+
+            auto start = std::chrono::steady_clock::now();
+            size_t consumed = parser.parse_multiple_message(buffer.data(), bytes);
+            auto end = std::chrono::steady_clock::now();
+            parse_time += (end - start);
+
+            if (consumed > bytes)
+            {
+                std::cerr << "Parser error: consumed " << consumed
+                          << " bytes from buffer of " << bytes << " bytes\n";
+                return 1;
+            }
+
+            leftover = bytes - consumed;
+
+            if (leftover > 0)
+            {
+                std::memmove(buffer.data(), buffer.data() + consumed, leftover);
+            }
         }
 
-        leftover = bytes - consumed;
+        total_msgs += parser.message_count();
 
-        if (leftover > 0)
-        {
-            std::memmove(buffer.data(), buffer.data() + consumed, leftover);
-        }
+        // if (!iter)
+        //     market.print_best_bid_ask();
     }
 
-    double sec = parse_time.count();    
-    uint64_t msgs = parser.message_count();
+    double sec = parse_time.count();
 
-    std::cout << "Messages:   " << msgs << '\n';
+    std::cout << "Messages:   " << total_msgs << '\n';
     std::cout << "Time:       " << sec << " s\n";
-    std::cout << "Throughput: " << (msgs / sec) / 1e6 << " M msg/s\n";
-
-    market.print_best_bid_ask();
+    std::cout << "Throughput: " << (total_msgs / sec) / 1e6 << " M msg/s\n";
 
     return 0;
 }
