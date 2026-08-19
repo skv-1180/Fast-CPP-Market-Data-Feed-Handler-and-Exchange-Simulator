@@ -1,33 +1,64 @@
 CXX      := g++
 CXXFLAGS := -std=c++20 -O3 -march=native -flto -Wall -Wextra -Wpedantic
 
-SRC_DIR := src
-INC_DIR := include
-OBJ_DIR := obj
+SRC_DIR  := src
+APP_DIR  := apps
+INC_DIR  := include
+BUILD_DIR := build
+OBJ_DIR  := $(BUILD_DIR)/obj
 
 CXXFLAGS += -I$(INC_DIR)
 
-SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+EXCHANGE_TARGET := $(BUILD_DIR)/exchange_simulator
+CONSUMER_TARGET := $(BUILD_DIR)/market_data_consumer
 
-TARGET := trading_engine
+EXCHANGE_SRC := $(APP_DIR)/exchange_simulator.cpp
+CONSUMER_SRC := $(APP_DIR)/market_data_consumer.cpp
 
-all: $(TARGET)
+SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
-$(TARGET): $(OBJS)
+OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+
+EXCHANGE_OBJ := $(EXCHANGE_SRC:$(APP_DIR)/%.cpp=$(OBJ_DIR)/apps/%.o)
+CONSUMER_OBJ := $(CONSUMER_SRC:$(APP_DIR)/%.cpp=$(OBJ_DIR)/apps/%.o)
+
+
+.PHONY: all clean exchange consumer
+
+all: $(EXCHANGE_TARGET) $(CONSUMER_TARGET)
+
+
+exchange: $(EXCHANGE_TARGET)
+
+consumer: $(CONSUMER_TARGET)
+
+
+$(EXCHANGE_TARGET): $(OBJS) $(EXCHANGE_OBJ)
 	@echo "Linking binary: $@"
-	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
-	@echo "Build successful! Run with: ./$(TARGET)"
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Build successful! Run with: ./$(EXCHANGE_TARGET)"
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+
+$(CONSUMER_TARGET): $(OBJS) $(CONSUMER_OBJ)
+	@echo "Linking binary: $@"
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Build successful! Run with: ./$(CONSUMER_TARGET)"
+
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
 	@echo "Compiling: $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/apps/%.o: $(APP_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@echo "Compiling: $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
 
 clean:
 	@echo "Cleaning up build artifacts..."
-	@rm -rf $(OBJ_DIR) $(TARGET)
-
-.PHONY: all clean
+	@rm -rf $(BUILD_DIR)

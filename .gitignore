@@ -8,3 +8,7 @@ build/
 result/
 network/client
 network/server
+network/udp_test.cpp
+network/*.out
+moldudp64_test
+moldudp64_test.cpp
