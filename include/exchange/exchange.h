@@ -20,7 +20,7 @@ public:
         std::size_t max_packet_size);
 
     // Publish one message.
-    bool publish(const void* data, std::uint16_t size);
+    bool publish(const std::uint8_t* data, std::size_t size);
 
     bool flush();
 
@@ -35,8 +35,6 @@ public:
     std::uint64_t messages_sent() const;
 
 private:
-    bool send_packet();
-
     UdpClient client_;
 
     std::string session_;

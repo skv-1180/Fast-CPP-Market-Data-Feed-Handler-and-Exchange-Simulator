@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <cstdint>
 
 class UdpServer
 {
@@ -15,8 +16,8 @@ public:
 
     bool success() const;
 
-    std::size_t send(const void* data, std::size_t size);
-    std::size_t receive(void* data, std::size_t size);
+    std::size_t send(const std::uint8_t* data, std::size_t size);
+    std::size_t receive(std::uint8_t* data, std::size_t size);
 
 private:
     int socket_fd_ = -1;

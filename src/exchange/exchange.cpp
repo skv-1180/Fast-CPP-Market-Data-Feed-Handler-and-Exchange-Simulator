@@ -23,13 +23,13 @@ Exchange::Exchange(
             "max_packet_size must be at least HEADER_SIZE");
 }
 
-bool Exchange::publish(const void* data, std::uint16_t size)
+bool Exchange::publish(const std::uint8_t* data, std::size_t size)
 {
 
     if (size > 0 && data == nullptr)
         return false;
 
-    const std::size_t required_size = 2 + static_cast<std::size_t>(size);
+    const std::size_t required_size = 2 + size;
 
     
     // If the message itself cannot fit inside a packet, it cannot be published.

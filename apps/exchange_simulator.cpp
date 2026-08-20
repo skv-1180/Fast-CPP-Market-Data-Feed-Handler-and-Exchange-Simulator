@@ -43,9 +43,9 @@ int run_replay(const char* host, const char* port, const char* filename)
             throw std::runtime_error("Invalid zero-length ITCH message");
         }
 
-        std::vector<char> message(message_length);
+        std::vector<std::uint8_t> message(message_length);
 
-        file.read(message.data(), message_length);
+        file.read(reinterpret_cast<char*>(message.data()), message_length);
 
         if (file.gcount() != message_length) {
             throw std::runtime_error("Incomplete final ITCH message");

@@ -20,7 +20,7 @@ MoldUDP64Packet::MoldUDP64Packet(const std::string& session, SeqNo sequence_numb
     md::write_u16(buffer_.data() + 18, 0);
 }
 
-bool MoldUDP64Packet::add_message(const void* data, std::uint16_t size)
+bool MoldUDP64Packet::add_message(const std::uint8_t* data, std::uint16_t size)
 {
     if (message_count_ == END_OF_SESSION || message_count_ == END_OF_SESSION - 1)
         return false;

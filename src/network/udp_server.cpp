@@ -101,7 +101,7 @@ bool UdpServer::success() const
     return success_;
 }
 
-std::size_t UdpServer::receive(void* data, std::size_t size)
+std::size_t UdpServer::receive(std::uint8_t* data, std::size_t size)
 {
     if (!success_)
         return 0;
@@ -122,7 +122,7 @@ std::size_t UdpServer::receive(void* data, std::size_t size)
     return static_cast<std::size_t>(bytes_received);
 }
 
-std::size_t UdpServer::send(const void* data, std::size_t size)
+std::size_t UdpServer::send(const std::uint8_t* data, std::size_t size)
 {
     if (!success_)
         return 0;

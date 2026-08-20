@@ -17,7 +17,7 @@ public:
 
     MoldUDP64Parser() = default;
     
-    bool parse(const void* data, std::size_t size);
+    bool parse(const std::uint8_t* data, std::size_t size);
 
     const std::string& session() const;
 

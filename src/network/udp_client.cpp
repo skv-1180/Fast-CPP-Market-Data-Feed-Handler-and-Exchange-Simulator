@@ -59,7 +59,7 @@ bool UdpClient::success() const
     return success_;
 }
 
-std::size_t UdpClient::send(const void* data, std::size_t size)
+std::size_t UdpClient::send(const std::uint8_t* data, std::size_t size)
 {
     if (!success_)
         return 0;
@@ -78,7 +78,7 @@ std::size_t UdpClient::send(const void* data, std::size_t size)
     return static_cast<std::size_t>(bytes_sent);
 }
 
-std::size_t UdpClient::receive(void* data, std::size_t size)
+std::size_t UdpClient::receive(std::uint8_t* data, std::size_t size)
 {
     if (!success_)
         return 0;

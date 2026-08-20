@@ -6,9 +6,9 @@
 #include <limits>
 #include <stdexcept>
 
-bool MoldUDP64Parser::parse(const void* data, std::size_t size)
+bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 {
-    data_ = static_cast<const std::uint8_t*>(data);
+    data_ = data;
     size_ = size;
 
     session_.clear();

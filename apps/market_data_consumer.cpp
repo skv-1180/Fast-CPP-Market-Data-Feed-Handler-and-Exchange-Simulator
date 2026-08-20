@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
     std::uint64_t total_parse_time_ns = 0;
 
-    std::vector<char> buffer(BUFFER_SIZE);
+    std::vector<std::uint8_t> buffer(BUFFER_SIZE);
 
     while (true) {
         std::size_t received = server.receive(buffer.data(), buffer.size());
@@ -82,8 +82,7 @@ int main(int argc, char* argv[])
 
             auto start = std::chrono::steady_clock::now();
 
-            itch_parser.parse_single_message(
-                reinterpret_cast<const char*>(message.data), message.size);
+            itch_parser.parse_single_message(message.data, message.size);
 
             auto end = std::chrono::steady_clock::now();
 

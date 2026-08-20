@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <netdb.h>
+#include <cstdint>
 
 class UdpClient
 {
@@ -11,8 +12,8 @@ public:
 
     bool success() const;
     
-    std::size_t send(const void* data, std::size_t size);
-    std::size_t receive(void* data, std::size_t size);
+    std::size_t send(const std::uint8_t* data, std::size_t size);
+    std::size_t receive(std::uint8_t* data, std::size_t size);
     
     UdpClient(const UdpClient&) = delete;
     UdpClient& operator=(const UdpClient&) = delete;
