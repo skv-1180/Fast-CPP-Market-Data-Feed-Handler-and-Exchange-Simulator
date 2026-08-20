@@ -1,5 +1,5 @@
 #include "market/market.h"
-#include "market/utility.h"
+#include "common/utility.h"
 #include <iostream>
 
 void Market::add_order(OrderId order_id, Side side, Quantity qty,

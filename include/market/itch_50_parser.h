@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "market/utility.h"
-#include "market/types.h"
+#include "common/utility.h"
+#include "common/types.h"
 
 template <typename Market>
 class Itch50Parser

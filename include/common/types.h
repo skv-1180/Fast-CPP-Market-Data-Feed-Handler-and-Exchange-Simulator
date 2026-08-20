@@ -2,11 +2,11 @@
 
 #include <cstdint>
 
-using OrderId = uint64_t;
-using Quantity = uint32_t;
-using Price = uint32_t;
-using Symbol = uint64_t;
-using TotalQuantity = uint64_t;
+using OrderId = std::uint64_t;
+using Quantity = std::uint32_t;
+using Price = std::uint32_t;
+using Symbol = std::uint64_t;
+using TotalQuantity = std::uint64_t;
 
 enum class Side {
     Buy, Sell

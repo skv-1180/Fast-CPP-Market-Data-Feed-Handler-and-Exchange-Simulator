@@ -1,6 +1,6 @@
 #pragma once
 
-#include "market/types.h"
+#include "common/types.h"
 #include "market/order_book.h"
 
 class Market {
