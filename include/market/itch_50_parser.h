@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-
 #include "common/utility.h"
 #include "common/types.h"
+#include <cstddef>
+#include <cstdint>
 
 template <typename Market>
 class Itch50Parser
@@ -15,26 +14,26 @@ class Itch50Parser
     {
     }
 
-    size_t parse_multiple_message(const char* msg_buffer, size_t len)
+    std::size_t parse_multiple_message(const char* msg_buffer, std::size_t len)
     {
         using namespace md;
-        size_t i = 0;
+        std::size_t i = 0;
 
         while (i < len)
         {
-            size_t msg_len = read_16_Bit(msg_buffer + i);
+            std::size_t msg_len = read_16_bit(msg_buffer + i);
             if (i + 2 + msg_len > len)
             {
                 break;
             }
-            parse_single_message(msg_buffer + 2 + i);
+            parse_single_message(msg_buffer + 2 + i, msg_len);
             i += msg_len + 2;
         }
 
         return i;
     }
 
-    void parse_single_message(const char* msg_buffer)
+    void parse_single_message(const char* msg_buffer, [[maybe_unused]]std::size_t len)
     {
         ++messages_;
         char type = msg_buffer[0];

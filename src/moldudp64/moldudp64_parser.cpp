@@ -28,7 +28,7 @@ bool MoldUDP64Parser::parse(const void* data, std::size_t size)
     }
 
     sequence_number_ = md::read_64_bit(data_ + 10);
-    message_count_ = md::read_16_Bit(data_ + 18);
+    message_count_ = md::read_16_bit(data_ + 18);
 
     // heartbeat or end_of_session packet
     if (message_count_ == 0 || message_count_ == END_OF_SESSION) 
@@ -47,7 +47,7 @@ bool MoldUDP64Parser::parse(const void* data, std::size_t size)
             return false;
         }
 
-        const std::uint16_t message_size = md::read_16_Bit(data_ + offset);
+        const std::uint16_t message_size = md::read_16_bit(data_ + offset);
         offset += 2;
 
         if (offset + message_size > size_) 
@@ -88,7 +88,7 @@ MoldUDP64Parser::Message MoldUDP64Parser::message(std::size_t index) const
     }
 
     const std::size_t offset = message_offsets_[index];
-    const std::uint16_t message_size = md::read_16_Bit(data_ + offset - 2);
+    const std::uint16_t message_size = md::read_16_bit(data_ + offset - 2);
 
     return Message { data_ + offset, message_size };
 }

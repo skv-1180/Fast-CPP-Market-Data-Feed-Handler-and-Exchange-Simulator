@@ -32,10 +32,7 @@ UdpServer::UdpServer(const char* sender_port)
             continue;
         }
 
-        // --------------------------------------------------------
         // Increase UDP receive buffer
-        // --------------------------------------------------------
-
         int receive_buffer = 16 * 1024 * 1024; // 16 MB
 
         if (setsockopt(

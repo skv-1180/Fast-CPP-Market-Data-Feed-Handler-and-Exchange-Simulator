@@ -31,8 +31,8 @@ public:
     std::optional<Price> best_ask() const;
     TotalQuantity bid_quantity(Price price) const;
     TotalQuantity ask_quantity(Price price) const;
-    size_t bid_levels() const;
-    size_t ask_levels() const;
+    std::size_t bid_levels() const;
+    std::size_t ask_levels() const;
     bool empty() const;
 
     OrderBook(const OrderBook&) = delete;

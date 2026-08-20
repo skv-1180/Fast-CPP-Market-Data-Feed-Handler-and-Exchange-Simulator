@@ -41,7 +41,8 @@ OrderStatus OrderBook::executed_order(OrderId order_id, Quantity quantity)
     return OrderStatus::Alive;
 }
 
-OrderStatus OrderBook::executed_at_price_order(OrderId order_id, Quantity quantity, Price price)
+OrderStatus OrderBook::executed_at_price_order(
+    OrderId order_id, Quantity quantity, [[maybe_unused]] Price price)
 {
     return executed_order(order_id, quantity);
 }
@@ -114,12 +115,12 @@ TotalQuantity OrderBook::ask_quantity(Price price) const
     return (it != asks_.end()) ? it->second : TotalQuantity{0};
 }
 
-size_t OrderBook::bid_levels() const
+std::size_t OrderBook::bid_levels() const
 {
     return bids_.size();
 }
 
-size_t OrderBook::ask_levels() const
+std::size_t OrderBook::ask_levels() const
 {
     return asks_.size();
 }

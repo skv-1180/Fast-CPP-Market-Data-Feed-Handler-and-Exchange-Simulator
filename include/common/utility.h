@@ -1,14 +1,14 @@
 #pragma once
 
+#include "types.h"
 #include <cstdint>
 #include <string>
-#include "types.h"
 #include <cstring>
 
 // Assumption: Host Machine is Little-Endian
 namespace md  // market data
 {
-inline std::uint16_t read_16_Bit(const void* buf)
+inline std::uint16_t read_16_bit(const void* buf)
 {
     const auto* src = static_cast<const std::uint8_t*>(buf);
     
