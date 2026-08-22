@@ -7,6 +7,7 @@ using Quantity = std::uint32_t;
 using Price = std::uint32_t;
 using Symbol = std::uint64_t;
 using TotalQuantity = std::uint64_t;
+using SymbolId = std::uint16_t;
 
 enum class Side {
     Buy, Sell

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "moldudp64/moldudp64_types.h"
+#include "moldudp64/moldudp64_protocol.h"
 
 #include <cstddef>
 #include <cstdint>

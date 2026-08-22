@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <bit>
 #include <array>
+#include <iostream>
 
 template <typename Market> 
 class Itch50Parser {
@@ -97,9 +98,10 @@ inline void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
     Side side = (msg->buy_sell_indicator == 'B') ? Side::Buy : Side::Sell;
     Quantity quantity = std::byteswap(msg->shares);
     Price price = std::byteswap(msg->price);
-    Symbol symbol = std::byteswap(msg->stock);
+    // Symbol symbol = std::byteswap(msg->stock);
+    SymbolId symbol_id = std::byteswap(msg->stock_locate);
 
-    market_.add_order(order_id, side, quantity, symbol, price);
+    market_.add_order(order_id, side, quantity, symbol_id, price);
 }
 
 template <typename Market>

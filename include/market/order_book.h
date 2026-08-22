@@ -20,6 +20,8 @@ public:
     std::size_t bid_levels() const;
     std::size_t ask_levels() const;
 
+    bool empty() const;
+
     OrderBook(const OrderBook&) = delete;
     OrderBook& operator=(const OrderBook&) = delete;
     OrderBook(OrderBook&&) = delete;

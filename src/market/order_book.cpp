@@ -90,6 +90,11 @@ std::size_t OrderBook::ask_levels() const
     return asks_.size();
 }
 
+bool OrderBook::empty() const
+{
+    return bids_.empty() && asks_.empty();
+}
+
 /*
 void OrderBook::add_order(OrderId order_id, Side side, Quantity quantity, Price price)
 {

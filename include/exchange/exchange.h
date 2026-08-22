@@ -1,6 +1,6 @@
 #pragma once
 
-#include "moldudp64/moldudp64_types.h"
+#include "moldudp64/moldudp64_protocol.h"
 #include "moldudp64/moldudp64.h"
 #include "network/udp_client.h"
 
