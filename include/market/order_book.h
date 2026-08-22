@@ -1,13 +1,14 @@
 #pragma once
 
 #include "common/types.h"
-#include <map>
+#include "common/config.h"
 #include <optional>
+#include <boost/container/flat_map.hpp>
 
 class OrderBook
 {
 public:
-    OrderBook() = default;
+    OrderBook();
 
     void add_level_quantity(Price price, Quantity qty, Side side);
     void reduce_level_quantity(Price price, Quantity qty, Side side);
@@ -27,6 +28,7 @@ public:
     OrderBook(OrderBook&&) = delete;
     OrderBook& operator=(OrderBook&&) = delete;
 private:
-    std::map<Price, TotalQuantity, std::greater<int64_t>> bids_;
-    std::map<Price, TotalQuantity> asks_;
+    
+    boost::container::flat_map<Price, TotalQuantity, std::greater<Price>> bids_;   
+    boost::container::flat_map<Price, TotalQuantity> asks_;
 };
