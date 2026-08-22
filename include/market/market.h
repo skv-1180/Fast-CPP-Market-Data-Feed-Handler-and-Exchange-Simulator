@@ -2,10 +2,21 @@
 
 #include "common/types.h"
 #include "market/order_book.h"
+#include <unordered_map>
+
+struct Order 
+{
+    OrderId order_id;
+    Price price;
+    Quantity quantity;
+    Side side;
+    Symbol symbol; 
+};
 
 class Market {
 public:
     Market() = default;
+
     void add_order(OrderId order_id, Side side, Quantity qty,
                    Symbol symbol, Price price);
 
@@ -21,7 +32,12 @@ public:
 
     Market(const Market&) = delete;
     Market& operator=(const Market&) = delete;
+    Market(Market&&) = delete;
+    Market& operator=(Market&&) = delete;
+
 private:
-    std::unordered_map<Symbol, OrderBook> books_;
-    std::unordered_map<OrderId, OrderBook*> order_index_;
+    void reduce_order_size(OrderId order_id, Quantity qty); 
+    
+    std::unordered_map<Symbol, OrderBook> books_;    
+    std::unordered_map<OrderId, Order> global_orders_;
 };

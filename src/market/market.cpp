@@ -5,65 +5,75 @@
 void Market::add_order(OrderId order_id, Side side, Quantity qty,
                        Symbol symbol, Price price)
 {
+    global_orders_[order_id] = Order{order_id, price, qty, side, symbol};
+
     auto [it, _] = books_.try_emplace(symbol);
     OrderBook& book = it->second;
-    book.add_order(order_id, side, qty, price);
-    order_index_[order_id] = &book;
+
+    book.add_level_quantity(price, qty, side);
+}
+
+void Market::reduce_order_size(OrderId order_id, Quantity qty)
+{
+    auto it = global_orders_.find(order_id);
+    if (it == global_orders_.end()) return;
+
+    Order& order = it->second;
+    OrderBook& book = books_[order.symbol];
+
+    if (qty >= order.quantity)
+    {
+        book.reduce_level_quantity(order.price, order.quantity, order.side);
+        global_orders_.erase(it);
+    }
+    else
+    {
+        book.reduce_level_quantity(order.price, qty, order.side);
+        order.quantity -= qty;
+    }
 }
 
 void Market::executed_order(OrderId order_id, Quantity qty)
 {
-    auto it = order_index_.find(order_id);
-    if (it == order_index_.end()) return;
-
-    auto order_status = it->second->executed_order(order_id, qty);
-
-    if (order_status == OrderStatus::Removed)
-        order_index_.erase(it);
+    reduce_order_size(order_id, qty);
 }
 
-void Market::executed_at_price_order(OrderId order_id, Quantity qty, Price price)
+void Market::executed_at_price_order(OrderId order_id, Quantity qty, [[maybe_unused]] Price price)
 {
-    auto it = order_index_.find(order_id);
-    if (it == order_index_.end()) return;
-
-    auto order_status = it->second->executed_at_price_order(order_id, qty, price);
-
-    if (order_status == OrderStatus::Removed)
-        order_index_.erase(it);
+    reduce_order_size(order_id, qty); 
 }
 
 void Market::cancel_order(OrderId order_id, Quantity qty)
 {
-    auto it = order_index_.find(order_id);
-    if (it == order_index_.end()) return;
-
-    auto order_status = it->second->cancel_order(order_id, qty);
-
-    if (order_status == OrderStatus::Removed)
-        order_index_.erase(it);
+    reduce_order_size(order_id, qty);
 }
 
 void Market::delete_order(OrderId order_id)
 {
-    auto it = order_index_.find(order_id);
-    if (it == order_index_.end()) return;
+    auto it = global_orders_.find(order_id);
+    if (it == global_orders_.end()) return;
 
-    it->second->delete_order(order_id);
-    order_index_.erase(it);
+    const Order& order = it->second;
+    OrderBook& book = books_[order.symbol];
+
+    book.reduce_level_quantity(order.price, order.quantity, order.side);
+    global_orders_.erase(it);
 }
 
 void Market::replace_order(OrderId oldId, OrderId newId, Quantity qty, Price price)
 {
-    auto it = order_index_.find(oldId);
-    if (it == order_index_.end()) return;
+    auto it = global_orders_.find(oldId);
+    if (it == global_orders_.end()) return;
 
-    OrderBook* book = it->second;
+    const Order old_order = it->second;
+    OrderBook& book = books_[old_order.symbol];
 
-    book->replace_order(oldId, newId, qty, price);
+    book.reduce_level_quantity(old_order.price, old_order.quantity, old_order.side);
+    global_orders_.erase(it);
 
-    order_index_.erase(it);
-    order_index_[newId] = book;
+    global_orders_[newId] = Order{newId, price, qty, old_order.side, old_order.symbol};
+
+    book.add_level_quantity(price, qty, old_order.side);
 }
 
 const OrderBook* Market::find_book(Symbol symbol) const
@@ -71,7 +81,6 @@ const OrderBook* Market::find_book(Symbol symbol) const
     auto it = books_.find(symbol);
     return (it != books_.end()) ? &it->second : nullptr;
 }
-
 
 void Market::print_best_bid_ask() const
 {
