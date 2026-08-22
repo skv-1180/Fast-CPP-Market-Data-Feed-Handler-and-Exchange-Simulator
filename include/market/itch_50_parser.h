@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <bit>
+#include <array>
 
 template <typename Market> 
 class Itch50Parser {
@@ -18,6 +19,8 @@ public:
     std::uint64_t message_count() const;
 
 private:
+    using MsgHandler = void (Itch50Parser::*)(const std::uint8_t*);
+
     void add_order(const std::uint8_t* msg_buffer);
 
     void executed_order(const std::uint8_t* msg_buffer);
@@ -30,14 +33,26 @@ private:
 
     void replace_order(const std::uint8_t* msg_buffer);
 
+    void no_op([[maybe_unused]] const std::uint8_t* msg_buffer) {} // dummy function
+
     Market& market_;
     std::uint64_t messages_ = 0; // for measuring performance
+    std::array<MsgHandler, 256> dispatch_table_;
 };
 
 template <typename Market>
 Itch50Parser<Market>::Itch50Parser(Market& market)
     : market_ { market }
 {
+    dispatch_table_.fill(&Itch50Parser::no_op);
+
+    dispatch_table_['A'] = &Itch50Parser::add_order;
+    dispatch_table_['F'] = &Itch50Parser::add_order;
+    dispatch_table_['U'] = &Itch50Parser::replace_order;
+    dispatch_table_['D'] = &Itch50Parser::delete_order;
+    dispatch_table_['E'] = &Itch50Parser::executed_order;
+    dispatch_table_['X'] = &Itch50Parser::cancel_order;
+    dispatch_table_['C'] = &Itch50Parser::executed_at_price_order;
 }
 
 template <typename Market>
@@ -68,43 +83,9 @@ inline void Itch50Parser<Market>::parse_single_message(
 {
     ++messages_;
 
-    const char type = static_cast<char>(msg_buffer[0]);
-    /*
-        'A' - 0
-        'F' - 0
-        'U' - 1
-        |add_order|  
-    */
-    switch (type) 
-    {
-        case 'A': [[likely]]
-        case 'F': [[likely]]
-            add_order(msg_buffer);
-            break;
+    const std::uint8_t type = msg_buffer[0];
 
-        case 'U': [[likely]]
-            replace_order(msg_buffer);
-            break;
-
-        case 'D': [[likely]]
-            delete_order(msg_buffer);
-            break;
-
-        case 'E': [[likely]]
-            executed_order(msg_buffer);
-            break;
-
-        case 'X':
-            cancel_order(msg_buffer);
-            break;
-
-        case 'C':
-            executed_at_price_order(msg_buffer);
-            break;
-
-        default:
-            break;
-    }
+    (this->*dispatch_table_[type])(msg_buffer);
 }
 
 template <typename Market>
