@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdexcept>
+#include <system_error>
 
 UdpClient::UdpClient(const char* hostname, const char* server_port)
 {
@@ -12,36 +14,27 @@ UdpClient::UdpClient(const char* hostname, const char* server_port)
     hints.ai_socktype = SOCK_DGRAM;  // UDP
 
     int status = getaddrinfo(hostname, server_port, &hints, &serv_info_);
-
     if (status != 0)
     {
-        std::cerr << "getaddrinfo: " << gai_strerror(status) << '\n';
-        return;
+        throw std::runtime_error(std::string("getaddrinfo failed: ") + gai_strerror(status));
     }
 
-    // Try each address returned by getaddrinfo().
-    for (addrinfo* p = serv_info_; p != nullptr; p = p->ai_next)
+    for (struct addrinfo* p = serv_info_; p != nullptr; p = p->ai_next)
     {
         socket_fd_ = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-
-        if (socket_fd_ == -1)
+        if (socket_fd_ != -1)
         {
-            std::cerr << "socket: " << std::strerror(errno) << '\n';
-            continue;
+            break; 
         }
-
-        success_ = true;
-        break;
     }
 
-    if (!success_)
+    if (socket_fd_ == -1)
     {
-        std::cerr << "failed to create socket\n";
-
+        int saved_errno = errno;
         freeaddrinfo(serv_info_);
         serv_info_ = nullptr;
-
-        return;
+        
+        throw std::system_error(saved_errno, std::generic_category(), "Failed to create socket");
     }
 }
 
@@ -54,16 +47,8 @@ UdpClient::~UdpClient()
         freeaddrinfo(serv_info_);
 }
 
-bool UdpClient::success() const
-{
-    return success_;
-}
-
 std::size_t UdpClient::send(const std::uint8_t* data, std::size_t size)
 {
-    if (!success_)
-        return 0;
-
     ssize_t bytes_sent = sendto(
         socket_fd_, data, size, 0, 
         serv_info_->ai_addr, serv_info_->ai_addrlen
@@ -80,9 +65,6 @@ std::size_t UdpClient::send(const std::uint8_t* data, std::size_t size)
 
 std::size_t UdpClient::receive(std::uint8_t* data, std::size_t size)
 {
-    if (!success_)
-        return 0;
-
     ssize_t bytes_received = recvfrom(socket_fd_, data, size, 0, nullptr, nullptr);
 
     if (bytes_received == -1)
@@ -97,12 +79,6 @@ std::size_t UdpClient::receive(std::uint8_t* data, std::size_t size)
 // int main()
 // {
 //     UdpClient client("localhost", "4950");
-
-//     if (!client.success())
-//     {
-//         std::cerr << "Failed to create UDP client\n";
-//         return 1;
-//     }
 
 //     const char* message = "Hello from client!";
 

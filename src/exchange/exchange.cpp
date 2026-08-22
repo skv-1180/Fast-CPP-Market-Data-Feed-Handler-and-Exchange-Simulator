@@ -15,9 +15,6 @@ Exchange::Exchange(
     , max_packet_size_ { max_packet_size }
     , packet_ { session, initial_sequence }
 {
-    if (!client_.success())
-        throw std::runtime_error("Failed to initialize UDP client");
-
     if (max_packet_size_ < HEADER_SIZE)
         throw std::invalid_argument(
             "max_packet_size must be at least HEADER_SIZE");

@@ -34,8 +34,8 @@ public:
     MoldUDP64Parser(const MoldUDP64Parser&) = delete;
     MoldUDP64Parser& operator= (const MoldUDP64Parser&) = delete;
 
-    MoldUDP64Parser(MoldUDP64Parser&&) noexcept = delete;
-    MoldUDP64Parser& operator= (MoldUDP64Parser&&) noexcept = delete;
+    MoldUDP64Parser(MoldUDP64Parser&&) = delete;
+    MoldUDP64Parser& operator= (MoldUDP64Parser&&) = delete;
 
 private:
     const std::uint8_t* data_ = nullptr;

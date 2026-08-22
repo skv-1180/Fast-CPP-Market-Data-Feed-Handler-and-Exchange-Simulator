@@ -6,84 +6,70 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <stdexcept>
+#include <system_error>
+#include <sys/types.h>
+#include <netdb.h>
+
 UdpServer::UdpServer(const char* sender_port)
 {
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET; // ip_v4
-    hints.ai_socktype = SOCK_DGRAM; // udp
-    hints.ai_flags = AI_PASSIVE; // use my IP
-    
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;       // IPv4
+    hints.ai_socktype = SOCK_DGRAM; 
+    hints.ai_flags = AI_PASSIVE;   
+
     int status = getaddrinfo(nullptr, sender_port, &hints, &serv_info);
     if (status != 0)
     {
-        std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
-        return;  
+        throw std::runtime_error(std::string("getaddrinfo failed: ") + gai_strerror(status));
     }
 
-    addrinfo *p;
-
-    // loop through all the results and bind to the first we can
-    for(p = serv_info; p != nullptr; p = p->ai_next) 
+    addrinfo* p = nullptr;
+    for (p = serv_info; p != nullptr; p = p->ai_next)
     {
         socket_fd_ = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-
-        if (socket_fd_ == -1) {
-            perror("listener: socket");
+        if (socket_fd_ == -1)
+        {
             continue;
         }
 
         // Increase UDP receive buffer
         int receive_buffer = 16 * 1024 * 1024; // 16 MB
-
-        if (setsockopt(
-                socket_fd_,
-                SOL_SOCKET,
-                SO_RCVBUF,
-                &receive_buffer,
-                sizeof(receive_buffer)) == -1)
+        if (setsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &receive_buffer, sizeof(receive_buffer)) == -1)
         {
-            perror("listener: setsockopt SO_RCVBUF");
             close(socket_fd_);
             socket_fd_ = -1;
             continue;
         }
 
-        // Check the actual buffer size assigned by the kernel.
+        // Check the actual buffer size assigned by the kernel
         int actual_buffer = 0;
         socklen_t actual_buffer_len = sizeof(actual_buffer);
-
-        if (getsockopt(
-                socket_fd_,
-                SOL_SOCKET,
-                SO_RCVBUF,
-                &actual_buffer,
-                &actual_buffer_len) == -1)
+        if (getsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &actual_buffer, &actual_buffer_len) == 0)
         {
-            perror("listener: getsockopt SO_RCVBUF");
-        }
-        else
-        {
-            std::cout
-                << "UDP receive buffer: "
-                << actual_buffer
-                << " bytes\n";
+            std::cout << "UDP receive buffer: " << actual_buffer << " bytes\n";
         }
 
-        if (bind(socket_fd_, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_fd_); 
-            perror("listener: bind");
+        if (bind(socket_fd_, p->ai_addr, p->ai_addrlen) == -1)
+        {
+            close(socket_fd_);
+            socket_fd_ = -1;
             continue;
         }
-        break;
+
+        break; 
     }
 
-    if (p == nullptr) {
-        std::cerr << "server: failed to bind socket" << std::endl;
-        return;
+    if (p == nullptr)
+    {
+        int saved_errno = errno;
+        freeaddrinfo(serv_info);
+        serv_info = nullptr;
+
+        throw std::system_error(saved_errno, std::generic_category(), "Failed to bind UDP server socket");
     }
 
-    success_ = true;
-    std::cout << "Server started successfully!" << std::endl;
+    std::cout << "Server started successfully!\n";
 }
 
 UdpServer::~UdpServer()
@@ -96,16 +82,8 @@ UdpServer::~UdpServer()
     std::cout << "Server closed!" << std::endl;
 }
 
-bool UdpServer::success() const
-{
-    return success_;
-}
-
 std::size_t UdpServer::receive(std::uint8_t* data, std::size_t size)
 {
-    if (!success_)
-        return 0;
-
     their_addr_len_ = sizeof(their_addr);
 
     ssize_t bytes_received = recvfrom(
@@ -124,9 +102,6 @@ std::size_t UdpServer::receive(std::uint8_t* data, std::size_t size)
 
 std::size_t UdpServer::send(const std::uint8_t* data, std::size_t size)
 {
-    if (!success_)
-        return 0;
-
     if (their_addr_len_ == 0)
     {
         std::cerr << "send: no client address available\n";
@@ -149,11 +124,6 @@ std::size_t UdpServer::send(const std::uint8_t* data, std::size_t size)
 
 // int main(){
 //     UdpServer server("18000");
-//     if (!server.success())
-//     {
-//         std::cerr << "Failed to create UDP server\n";
-//         return 1;
-//     }
     
 //     char buffer[1024];
 

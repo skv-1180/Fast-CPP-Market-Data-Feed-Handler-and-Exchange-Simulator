@@ -29,8 +29,8 @@ class MoldUDP64Packet
     MoldUDP64Packet(const MoldUDP64Packet&) = delete;
     MoldUDP64Packet& operator=(const MoldUDP64Packet&) = delete;
 
-    MoldUDP64Packet (MoldUDP64Packet&&) noexcept = default;
-    MoldUDP64Packet& operator=(MoldUDP64Packet&&) noexcept = default;
+    MoldUDP64Packet (MoldUDP64Packet&&) = default;
+    MoldUDP64Packet& operator=(MoldUDP64Packet&&) = default;
 
    private:
     std::vector<std::uint8_t> buffer_;

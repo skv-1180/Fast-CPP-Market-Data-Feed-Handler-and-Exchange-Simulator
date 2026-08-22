@@ -48,7 +48,8 @@ int run_replay(const char* host, const char* port, const char* filename)
         file.read(reinterpret_cast<char*>(message.data()), message_length);
 
         if (file.gcount() != message_length) {
-            throw std::runtime_error("Incomplete final ITCH message");
+            break;
+            // throw std::runtime_error("Incomplete final ITCH message");
         }
 
         const std::uint64_t timestamp = md::read_timestamp_6(message.data() + 5);
