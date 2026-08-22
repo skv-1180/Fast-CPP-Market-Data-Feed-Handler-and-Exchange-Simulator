@@ -50,7 +50,7 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
         const std::uint16_t message_size = md::read_16_bit(data_ + offset);
         offset += 2;
 
-        if (offset + message_size > size_) 
+        if (message_size == 0 || offset + message_size > size_) [[ unlikely ]] 
         {
             return false;
         }
@@ -83,9 +83,9 @@ std::uint16_t MoldUDP64Parser::message_count() const
 
 MoldUDP64Parser::Message MoldUDP64Parser::message(std::size_t index) const
 {
-    if (index >= message_offsets_.size()) {
-        throw std::out_of_range("MoldUDP64 message index out of range");
-    }
+    // if (index >= message_offsets_.size()) {
+    //     throw std::out_of_range("MoldUDP64 message index out of range");
+    // }
 
     const std::size_t offset = message_offsets_[index];
     const std::uint16_t message_size = md::read_16_bit(data_ + offset - 2);

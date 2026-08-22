@@ -63,7 +63,7 @@ int run_replay(const char* host, const char* port, const char* filename)
                 std::this_thread::sleep_for(std::chrono::nanoseconds(MAX_SLEEP_NS));
             }
 
-            if (messages_read % 10000 == 0) { // for debugging only
+            if (messages_read % 50000 == 0) { // for debugging only
                 std::cout << "Message " << messages_read << '\n';
             }
         }

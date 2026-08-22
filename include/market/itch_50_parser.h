@@ -62,34 +62,47 @@ std::size_t Itch50Parser<Market>::parse_multiple_message(
 }
 
 template <typename Market>
-void Itch50Parser<Market>::parse_single_message(
+inline void Itch50Parser<Market>::parse_single_message(
     const std::uint8_t* msg_buffer, [[maybe_unused]] std::size_t len)
 {
     ++messages_;
 
     const char type = static_cast<char>(msg_buffer[0]);
+    /*
+        'A' - 0
+        'F' - 0
+        'U' - 1
+        |add_order|  
+    */
+    switch (type) 
+    {
+        case 'A': [[likely]]
+        case 'F': [[likely]]
+            add_order(msg_buffer);
+            break;
 
-    switch (type) {
-    case 'A':
-        return add_order(msg_buffer);
+        case 'U': [[likely]]
+            replace_order(msg_buffer);
+            break;
 
-    case 'F':
-        return add_order(msg_buffer);
+        case 'D': [[likely]]
+            delete_order(msg_buffer);
+            break;
 
-    case 'E':
-        return executed_order(msg_buffer);
+        case 'E': [[likely]]
+            executed_order(msg_buffer);
+            break;
 
-    case 'C':
-        return executed_at_price_order(msg_buffer);
+        case 'X':
+            cancel_order(msg_buffer);
+            break;
 
-    case 'X':
-        return cancel_order(msg_buffer);
+        case 'C':
+            executed_at_price_order(msg_buffer);
+            break;
 
-    case 'D':
-        return delete_order(msg_buffer);
-
-    case 'U':
-        return replace_order(msg_buffer);
+        default:
+            break;
     }
 }
 
@@ -100,7 +113,7 @@ std::uint64_t Itch50Parser<Market>::message_count() const
 }
 
 template <typename Market>
-void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
+inline void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
 {
     using namespace md;
 
@@ -118,7 +131,7 @@ void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
 }
 
 template <typename Market>
-void Itch50Parser<Market>::executed_order(const std::uint8_t* msg_buffer)
+inline void Itch50Parser<Market>::executed_order(const std::uint8_t* msg_buffer)
 {
     using namespace md;
 
@@ -130,7 +143,7 @@ void Itch50Parser<Market>::executed_order(const std::uint8_t* msg_buffer)
 }
 
 template <typename Market>
-void Itch50Parser<Market>::executed_at_price_order(
+inline void Itch50Parser<Market>::executed_at_price_order(
     const std::uint8_t* msg_buffer)
 {
     using namespace md;
@@ -145,7 +158,7 @@ void Itch50Parser<Market>::executed_at_price_order(
 }
 
 template <typename Market>
-void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
+inline void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
 {
     using namespace md;
 
@@ -157,7 +170,7 @@ void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
 }
 
 template <typename Market>
-void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
+inline void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
 {
     using namespace md;
 
@@ -167,7 +180,7 @@ void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
 }
 
 template <typename Market>
-void Itch50Parser<Market>::replace_order(const std::uint8_t* msg_buffer)
+inline void Itch50Parser<Market>::replace_order(const std::uint8_t* msg_buffer)
 {
     using namespace md;
 

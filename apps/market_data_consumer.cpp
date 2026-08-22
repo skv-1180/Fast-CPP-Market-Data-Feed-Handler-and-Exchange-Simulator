@@ -60,28 +60,22 @@ void run_market_data_consumer(const char* port )
                       << ", received " << sequence << '\n';
         }
 
+        auto start = std::chrono::steady_clock::now();
         for (std::size_t i = 0; i < message_count; ++i) {
             auto message = mold_parser.message(i);
 
-            if (message.size == 0) {
-                continue;
-            }
-
-            auto start = std::chrono::steady_clock::now();
-
             itch_parser.parse_single_message(message.data, message.size);
-
-            auto end = std::chrono::steady_clock::now();
-
-            total_parse_time_ns +=
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
             ++messages_received;
 
-            if (messages_received % 10000 == 0) { // for debugging only
-                std::cout << "Received next 10000 message\n";
-            }
+            // if (messages_received % 10000 == 0) { // for debugging only
+            //     std::cout << "Received next 10000 message\n";
+            // }
         }
+
+        auto end = std::chrono::steady_clock::now();
+
+        total_parse_time_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
         expected_sequence = sequence + message_count;
     }
