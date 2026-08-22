@@ -2,10 +2,19 @@
 #include "common/utility.h"
 #include <iostream>
 
+Market::Market(std::size_t max_orders) {
+    global_orders_.resize(max_orders);
+}
+
 void Market::add_order(OrderId order_id, Side side, Quantity qty,
                        Symbol symbol, Price price)
 {
-    global_orders_[order_id] = Order{order_id, price, qty, side, symbol};
+    if (order_id >= global_orders_.size()) [[unlikely]] 
+    {
+        global_orders_.resize(order_id * 2);
+    }
+
+    global_orders_[order_id] = Order{order_id, price, qty, side, symbol, true};
 
     auto [it, _] = books_.try_emplace(symbol);
     OrderBook& book = it->second;
@@ -15,16 +24,15 @@ void Market::add_order(OrderId order_id, Side side, Quantity qty,
 
 void Market::reduce_order_size(OrderId order_id, Quantity qty)
 {
-    auto it = global_orders_.find(order_id);
-    if (it == global_orders_.end()) return;
+    Order& order = global_orders_[order_id];
+    if (!order.active) [[unlikely]] return;
 
-    Order& order = it->second;
     OrderBook& book = books_[order.symbol];
 
     if (qty >= order.quantity)
     {
         book.reduce_level_quantity(order.price, order.quantity, order.side);
-        global_orders_.erase(it);
+        order.active = false; 
     }
     else
     {
@@ -50,30 +58,33 @@ void Market::cancel_order(OrderId order_id, Quantity qty)
 
 void Market::delete_order(OrderId order_id)
 {
-    auto it = global_orders_.find(order_id);
-    if (it == global_orders_.end()) return;
+    Order& order = global_orders_[order_id];
+    if (!order.active) [[unlikely]] return;
 
-    const Order& order = it->second;
     OrderBook& book = books_[order.symbol];
 
     book.reduce_level_quantity(order.price, order.quantity, order.side);
-    global_orders_.erase(it);
+    order.active = false;
 }
 
 void Market::replace_order(OrderId oldId, OrderId newId, Quantity qty, Price price)
 {
-    auto it = global_orders_.find(oldId);
-    if (it == global_orders_.end()) return;
+    Order& old_order = global_orders_[oldId];
+    if (!old_order.active) [[unlikely]] return;
 
-    const Order old_order = it->second;
-    OrderBook& book = books_[old_order.symbol];
+    const Order old_order_copy = old_order;
+    OrderBook& book = books_[old_order_copy.symbol];
 
-    book.reduce_level_quantity(old_order.price, old_order.quantity, old_order.side);
-    global_orders_.erase(it);
+    book.reduce_level_quantity(old_order_copy.price, old_order_copy.quantity, old_order_copy.side);
+    old_order.active = false;
 
-    global_orders_[newId] = Order{newId, price, qty, old_order.side, old_order.symbol};
+    if (newId >= global_orders_.size()) [[unlikely]] {
+        global_orders_.resize(newId * 2);
+    }
+    
+    global_orders_[newId] = Order{newId, price, qty, old_order_copy.side, old_order_copy.symbol, true};
 
-    book.add_level_quantity(price, qty, old_order.side);
+    book.add_level_quantity(price, qty, old_order_copy.side);
 }
 
 const OrderBook* Market::find_book(Symbol symbol) const

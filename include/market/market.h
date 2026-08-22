@@ -3,6 +3,7 @@
 #include "common/types.h"
 #include "market/order_book.h"
 #include <unordered_map>
+#include <vector>
 
 struct Order 
 {
@@ -11,11 +12,12 @@ struct Order
     Quantity quantity;
     Side side;
     Symbol symbol; 
+    bool active = false;
 };
 
 class Market {
 public:
-    Market() = default;
+    Market(std::size_t max_orders = 5'000'000);
 
     void add_order(OrderId order_id, Side side, Quantity qty,
                    Symbol symbol, Price price);
@@ -39,5 +41,5 @@ private:
     void reduce_order_size(OrderId order_id, Quantity qty); 
     
     std::unordered_map<Symbol, OrderBook> books_;    
-    std::unordered_map<OrderId, Order> global_orders_;
+    std::vector<Order> global_orders_;
 };
