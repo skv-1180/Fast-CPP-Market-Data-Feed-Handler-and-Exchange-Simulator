@@ -1,5 +1,5 @@
 CXX      := g++
-CXXFLAGS := -std=c++20 -O3 -march=native -flto -Wall -Wextra -Wpedantic
+CXXFLAGS := -std=c++23 -O3 -march=native -flto -Wall -Wextra -Wpedantic
 
 SRC_DIR  := src
 APP_DIR  := apps

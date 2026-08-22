@@ -4,6 +4,7 @@
 #include "common/utility.h"
 #include <cstddef>
 #include <cstdint>
+#include <bit>
 
 template <typename Market> 
 class Itch50Parser {
@@ -107,25 +108,15 @@ inline void Itch50Parser<Market>::parse_single_message(
 }
 
 template <typename Market>
-std::uint64_t Itch50Parser<Market>::message_count() const
-{
-    return messages_;
-}
-
-template <typename Market>
 inline void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchAddOrder*>(msg_buffer);
 
-    OrderId order_id = read_64_bit(msg_buffer + 11);
-
-    Side side = (static_cast<char>(msg_buffer[19]) == 'B') ? Side::Buy : Side::Sell;
-
-    Quantity quantity = read_32_bit(msg_buffer + 20);
-
-    Symbol symbol = read_sym_64_bit(msg_buffer + 24);
-
-    Price price = read_32_bit(msg_buffer + 32);
+    OrderId order_id = std::byteswap(msg->order_reference_number);
+    Side side = (msg->buy_sell_indicator == 'B') ? Side::Buy : Side::Sell;
+    Quantity quantity = std::byteswap(msg->shares);
+    Price price = std::byteswap(msg->price);
+    Symbol symbol = std::byteswap(msg->stock);
 
     market_.add_order(order_id, side, quantity, symbol, price);
 }
@@ -133,11 +124,10 @@ inline void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
 template <typename Market>
 inline void Itch50Parser<Market>::executed_order(const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchOrderExecuted*>(msg_buffer);
 
-    OrderId order_id = read_64_bit(msg_buffer + 11);
-
-    Quantity quantity = read_32_bit(msg_buffer + 19);
+    OrderId order_id = std::byteswap(msg->order_reference_number);
+    Quantity quantity = std::byteswap(msg->executed_shares);
 
     market_.executed_order(order_id, quantity);
 }
@@ -146,13 +136,11 @@ template <typename Market>
 inline void Itch50Parser<Market>::executed_at_price_order(
     const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchOrderExecutedWithPrice*>(msg_buffer);
 
-    OrderId order_id = read_64_bit(msg_buffer + 11);
-
-    Quantity quantity = read_32_bit(msg_buffer + 19);
-
-    Price price = read_32_bit(msg_buffer + 32);
+    OrderId order_id = std::byteswap(msg->order_reference_number);
+    Quantity quantity = std::byteswap(msg->executed_shares);
+    Price price = std::byteswap(msg->execution_price);
 
     market_.executed_at_price_order(order_id, quantity, price);
 }
@@ -160,11 +148,10 @@ inline void Itch50Parser<Market>::executed_at_price_order(
 template <typename Market>
 inline void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchOrderCancel*>(msg_buffer);
 
-    OrderId order_id = read_64_bit(msg_buffer + 11);
-
-    Quantity quantity = read_32_bit(msg_buffer + 19);
+    OrderId order_id = std::byteswap(msg->order_reference_number);
+    Quantity quantity = std::byteswap(msg->canceled_shares);
 
     market_.cancel_order(order_id, quantity);
 }
@@ -172,9 +159,9 @@ inline void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
 template <typename Market>
 inline void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchOrderDelete*>(msg_buffer);
 
-    OrderId order_id = read_64_bit(msg_buffer + 11);
+    OrderId order_id = std::byteswap(msg->order_reference_number);
 
     market_.delete_order(order_id);
 }
@@ -182,15 +169,102 @@ inline void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
 template <typename Market>
 inline void Itch50Parser<Market>::replace_order(const std::uint8_t* msg_buffer)
 {
-    using namespace md;
+    const auto* msg = reinterpret_cast<const ItchOrderReplace*>(msg_buffer);
 
-    OrderId old_id = read_64_bit(msg_buffer + 11);
-
-    OrderId new_id = read_64_bit(msg_buffer + 19);
-
-    Quantity quantity = read_32_bit(msg_buffer + 27);
-
-    Price price = read_32_bit(msg_buffer + 31);
+    OrderId old_id = std::byteswap(msg->original_order_reference_number);
+    OrderId new_id = std::byteswap(msg->new_order_reference_number);
+    Quantity quantity = std::byteswap(msg->shares);
+    Price price = std::byteswap(msg->price);
 
     market_.replace_order(old_id, new_id, quantity, price);
 }
+
+template <typename Market>
+std::uint64_t Itch50Parser<Market>::message_count() const
+{
+    return messages_;
+}
+
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::add_order(const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId order_id = read_64_bit(msg_buffer + 11);
+
+//     Side side = (static_cast<char>(msg_buffer[19]) == 'B') ? Side::Buy : Side::Sell;
+
+//     Quantity quantity = read_32_bit(msg_buffer + 20);
+
+//     Symbol symbol = read_sym_64_bit(msg_buffer + 24);
+
+//     Price price = read_32_bit(msg_buffer + 32);
+
+//     market_.add_order(order_id, side, quantity, symbol, price);
+// }
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::executed_order(const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId order_id = read_64_bit(msg_buffer + 11);
+
+//     Quantity quantity = read_32_bit(msg_buffer + 19);
+
+//     market_.executed_order(order_id, quantity);
+// }
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::executed_at_price_order(
+//     const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId order_id = read_64_bit(msg_buffer + 11);
+
+//     Quantity quantity = read_32_bit(msg_buffer + 19);
+
+//     Price price = read_32_bit(msg_buffer + 32);
+
+//     market_.executed_at_price_order(order_id, quantity, price);
+// }
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::cancel_order(const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId order_id = read_64_bit(msg_buffer + 11);
+
+//     Quantity quantity = read_32_bit(msg_buffer + 19);
+
+//     market_.cancel_order(order_id, quantity);
+// }
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::delete_order(const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId order_id = read_64_bit(msg_buffer + 11);
+
+//     market_.delete_order(order_id);
+// }
+
+// template <typename Market>
+// inline void Itch50Parser<Market>::replace_order(const std::uint8_t* msg_buffer)
+// {
+//     using namespace md;
+
+//     OrderId old_id = read_64_bit(msg_buffer + 11);
+
+//     OrderId new_id = read_64_bit(msg_buffer + 19);
+
+//     Quantity quantity = read_32_bit(msg_buffer + 27);
+
+//     Price price = read_32_bit(msg_buffer + 31);
+
+//     market_.replace_order(old_id, new_id, quantity, price);
+// }
