@@ -9,7 +9,7 @@
 
 bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 {
-    if (size < sizeof(MoldUDP64Header)) [[unlikely]] 
+    if (size < HEADER_SIZE) [[unlikely]] 
     {
         return false;
     }
@@ -21,7 +21,7 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 
     if (message_count_ == 0 || message_count_ == END_OF_SESSION) [[unlikely]] 
     {
-        return size == sizeof(MoldUDP64Header);
+        return size == HEADER_SIZE;
     }
 
     if (message_count_ > MAX_MESSAGES_PER_PACKET) [[unlikely]] 
@@ -29,7 +29,7 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
         return false; 
     }
 
-    std::size_t offset = sizeof(MoldUDP64Header);
+    std::size_t offset = HEADER_SIZE;
 
     for (std::uint16_t i = 0; i < message_count_; ++i) 
     {

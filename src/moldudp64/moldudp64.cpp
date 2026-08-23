@@ -22,7 +22,7 @@ MoldUDP64Packet::MoldUDP64Packet(std::string_view session, SeqNo sequence_number
     header->sequence_number = std::byteswap(sequence_number);
     header->message_count = 0; 
 
-    current_size_ = sizeof(MoldUDP64Header);
+    current_size_ = HEADER_SIZE;
 }
 
 bool MoldUDP64Packet::has_capacity_for(std::uint16_t size) const
@@ -106,4 +106,15 @@ std::string MoldUDP64Packet::session() const
     }
     
     return std::string(header->session, len);
+}
+
+void MoldUDP64Packet::clear(SeqNo next_sequence) 
+{
+    auto* header = reinterpret_cast<MoldUDP64Header*>(buffer_.data());
+    header->sequence_number = std::byteswap(next_sequence);
+    header->message_count = 0;
+    
+    sequence_number_ = next_sequence;
+    message_count_ = 0;
+    current_size_ = HEADER_SIZE;
 }

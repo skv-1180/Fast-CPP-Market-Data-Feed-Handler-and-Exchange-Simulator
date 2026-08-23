@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
+#include <string_view>
 
 class Exchange
 {
@@ -14,11 +14,11 @@ public:
     Exchange(
         const char* host,
         const char* port,
-        const std::string& session,
+        std::string_view session,
         SeqNo initial_sequence,
         std::size_t max_packet_size);
 
-    bool publish(const std::uint8_t* data, std::size_t size);
+    bool publish(const std::uint8_t* data, std::uint16_t size);
 
     bool flush();
 
@@ -34,14 +34,11 @@ public:
 
 private:
     UdpClient client_;
-
-    std::string session_;
+    MoldUDP64Packet packet_;
 
     SeqNo next_sequence_;
     std::size_t max_packet_size_;
 
-    MoldUDP64Packet packet_;
-
-    std::uint64_t packets_sent_ = 0;
-    std::uint64_t messages_sent_ = 0;
+    std::uint64_t packets_sent_{0};
+    std::uint64_t messages_sent_{0};
 };

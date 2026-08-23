@@ -28,6 +28,8 @@ public:
 
     std::string session() const;
 
+    void clear(SeqNo next_sequence);
+
     MoldUDP64Packet(const MoldUDP64Packet&) = delete;
     MoldUDP64Packet& operator=(const MoldUDP64Packet&) = delete;
 
