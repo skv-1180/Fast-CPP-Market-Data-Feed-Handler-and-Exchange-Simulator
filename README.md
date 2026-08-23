@@ -1,4 +1,4 @@
-# Fast C++ Market Data Feed Handler & xchange Simulator (ITCH 5.0)
+# Fast C++ Market Data Feed Handler & Exchange Simulator (ITCH 5.0)
 
 A high-performance, zero-allocation feed handler and exchange simulator written in C++23. It replays historical NASDAQ ITCH 5.0 data over MoldUDP64 to simulate a live exchange, processing millions of messages a second to maintain a localized Limit Order Book.
 
