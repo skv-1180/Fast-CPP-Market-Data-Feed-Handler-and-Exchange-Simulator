@@ -36,6 +36,8 @@ void run_market_data_consumer(const char* port )
         }
 
         ++packets_received;
+        
+        auto start = std::chrono::steady_clock::now();
 
         if (!mold_parser.parse(buffer.data(), received)) {
             std::cerr << "Invalid MoldUDP64 packet\n";
@@ -60,24 +62,19 @@ void run_market_data_consumer(const char* port )
                       << ", received " << sequence << '\n';
         }
 
-        auto start = std::chrono::steady_clock::now();
         for (std::size_t i = 0; i < message_count; ++i) {
             auto message = mold_parser.message(i);
 
             itch_parser.parse_single_message(message.data, message.size);
 
             ++messages_received;
-
-            // if (messages_received % 10000 == 0) { // for debugging only
-            //     std::cout << "Received next 10000 message\n";
-            // }
         }
 
-        auto end = std::chrono::steady_clock::now();
-
-        total_parse_time_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
         expected_sequence = sequence + message_count;
+
+        auto end = std::chrono::steady_clock::now();
+        total_parse_time_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     }
 
     std::cout << "\nFeed handler stopped\n";
