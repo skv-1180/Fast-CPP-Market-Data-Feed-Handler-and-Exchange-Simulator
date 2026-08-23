@@ -1,5 +1,4 @@
 #include "market/market.h"
-#include "common/utility.h"
 #include <iostream>
 
 Market::Market(std::size_t max_orders) 

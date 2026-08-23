@@ -11,9 +11,11 @@ CXXFLAGS += -I$(INC_DIR)
 
 EXCHANGE_TARGET := $(BUILD_DIR)/exchange_simulator
 CONSUMER_TARGET := $(BUILD_DIR)/market_data_consumer
+BENCHMARK_TARGET := $(BUILD_DIR)/benchmark_engine
 
 EXCHANGE_SRC := $(APP_DIR)/exchange_simulator.cpp
 CONSUMER_SRC := $(APP_DIR)/market_data_consumer.cpp
+BENCHMARK_SRC := $(APP_DIR)/benchmark_engine.cpp
 
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
@@ -21,16 +23,19 @@ OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 EXCHANGE_OBJ := $(EXCHANGE_SRC:$(APP_DIR)/%.cpp=$(OBJ_DIR)/apps/%.o)
 CONSUMER_OBJ := $(CONSUMER_SRC:$(APP_DIR)/%.cpp=$(OBJ_DIR)/apps/%.o)
+BENCHMARK_OBJ := $(BENCHMARK_SRC:$(APP_DIR)/%.cpp=$(OBJ_DIR)/apps/%.o)
 
 
-.PHONY: all clean exchange consumer
+.PHONY: all clean exchange consumer benchmark
 
-all: $(EXCHANGE_TARGET) $(CONSUMER_TARGET)
+all: $(EXCHANGE_TARGET) $(CONSUMER_TARGET) $(BENCHMARK_TARGET)
 
 
 exchange: $(EXCHANGE_TARGET)
 
 consumer: $(CONSUMER_TARGET)
+
+benchmark: $(BENCHMARK_TARGET)
 
 
 $(EXCHANGE_TARGET): $(OBJS) $(EXCHANGE_OBJ)
@@ -45,6 +50,13 @@ $(CONSUMER_TARGET): $(OBJS) $(CONSUMER_OBJ)
 	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) $^ -o $@
 	@echo "Build successful! Run with: ./$(CONSUMER_TARGET)"
+
+
+$(BENCHMARK_TARGET): $(OBJS) $(BENCHMARK_OBJ)
+	@echo "Linking binary: $@"
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Build successful! Run with: ./$(BENCHMARK_TARGET)"
 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp

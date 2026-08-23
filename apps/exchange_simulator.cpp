@@ -1,8 +1,6 @@
-#include "common/utility.h"
 #include "moldudp64/moldudp64_protocol.h"
 #include "exchange/exchange.h"
 
-#include <chrono>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -32,8 +30,6 @@ int run_replay(const char* host, const char* port, const char* filename)
     const std::uint8_t* ptr = file_buffer.data();
     const std::uint8_t* end = ptr + file_size;
 
-    auto start_time = std::chrono::steady_clock::now();
-
     while (ptr + 2 <= end) 
     {
         const std::uint16_t message_length = 
@@ -47,7 +43,7 @@ int run_replay(const char* host, const char* port, const char* filename)
 
         if (messages_read > 0) [[likely]]
         {
-            if (messages_read % 5000 == 0) [[unlikely]] 
+            if (messages_read % 1000 == 0) [[unlikely]] 
             {
                 constexpr std::chrono::nanoseconds MAX_SLEEP_NS{1'000'000};
                 std::this_thread::sleep_for(MAX_SLEEP_NS);
@@ -76,15 +72,9 @@ int run_replay(const char* host, const char* port, const char* filename)
         throw std::runtime_error("Failed to send end-of-session packet");
     }
 
-    auto end_time = std::chrono::steady_clock::now();
-    double elapsed_sec = std::chrono::duration<double>(end_time - start_time).count();
-
     std::cout << "Replay complete\n"
-              << "Messages read:  " << messages_read << '\n'
               << "Messages sent:  " << publisher.messages_sent() << '\n'
-              << "Packets sent:   " << publisher.packets_sent() << '\n'
-              << "Elapsed time:   " << elapsed_sec << " seconds\n"
-              << "Paced Rate:     " << (publisher.messages_sent() / elapsed_sec) << " msg/s\n";
+              << "Packets sent:   " << publisher.packets_sent() << '\n';
 
     return 0;
 }

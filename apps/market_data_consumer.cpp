@@ -10,20 +10,23 @@
 #include <iostream>
 #include <vector>
 
-__attribute__((noinline, cold))
-void log_invalid_packet() {
-    std::cerr << "Invalid MoldUDP64 packet\n";
-}
+namespace 
+{
+    __attribute__((noinline, cold))
+    void log_invalid_packet() {
+        std::cerr << "Invalid MoldUDP64 packet\n";
+    }
 
-__attribute__((noinline, cold))
-void log_heartbeat(std::uint64_t sequence) {
-    std::cout << "Heartbeat: sequence=" << sequence << '\n';
-}
+    __attribute__((noinline, cold))
+    void log_heartbeat(std::uint64_t sequence) {
+        std::cout << "Heartbeat: sequence=" << sequence << '\n';
+    }
 
-__attribute__((noinline, cold))
-void log_sequence_gap(std::uint64_t expected, std::uint64_t received) {
-    std::cerr << "Sequence gap/error: expected " << expected
-              << ", received " << received << '\n';
+    __attribute__((noinline, cold))
+    void log_sequence_gap(std::uint64_t expected, std::uint64_t received) {
+        std::cerr << "Sequence gap/error: expected " << expected
+                << ", received " << received << '\n';
+    }
 }
 
 void run_market_data_consumer(const char* port )
@@ -93,7 +96,7 @@ void run_market_data_consumer(const char* port )
         total_parse_time_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     }
 
-    std::cout << "\nFeed handler stopped\n";
+    std::cout << "Feed handler stopped\n";
     std::cout << "Packets received:  " << packets_received << '\n';
     std::cout << "Messages received: " << messages_received << '\n';
     std::cout << "Messages parsed:   " << itch_parser.message_count() << '\n';
@@ -101,11 +104,10 @@ void run_market_data_consumer(const char* port )
 
     std::cout << "ITCH parse time:   " << total_parse_time_ns / 1e9 << " s\n";
 
-    if (total_parse_time_ns > 0) {
-        std::cout << "ITCH throughput:   "
-                  << (messages_received / (total_parse_time_ns / 1e9)) / 1e6
-                  << " M msg/s\n";
-    }
+    std::cout << "ITCH throughput:   " 
+        << (messages_received / (total_parse_time_ns / 1e9)) / 1e6
+        << " M msg/s\n";
+    
 
     market.print_best_bid_ask();
 }

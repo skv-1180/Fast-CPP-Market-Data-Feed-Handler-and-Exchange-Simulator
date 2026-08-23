@@ -1,5 +1,4 @@
 #include "moldudp64/moldudp64.h"
-#include "common/utility.h"
 
 #include <algorithm>
 #include <cstring>
