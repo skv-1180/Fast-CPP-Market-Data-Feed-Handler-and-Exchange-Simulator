@@ -1,4 +1,5 @@
 #include "common/utility.h"
+#include "moldudp64/moldudp64_protocol.h"
 #include "exchange/exchange.h"
 
 #include <chrono>
@@ -7,74 +8,63 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <bit>
 
 int run_replay(const char* host, const char* port, const char* filename)
 {
-    constexpr SeqNo INITIAL_SEQUENCE = 1;
-    constexpr std::size_t MAX_PACKET_SIZE = 1400;
-    const std::string session = "ITCH50";
-
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file) {
         throw std::runtime_error("Cannot open ITCH file: " + std::string(filename));
     }
+    
+    std::streamsize file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
 
-    Exchange publisher(host, port, session, INITIAL_SEQUENCE, MAX_PACKET_SIZE);
+    std::vector<std::uint8_t> file_buffer(file_size);
+    if (!file.read(reinterpret_cast<char*>(file_buffer.data()), file_size)) {
+        throw std::runtime_error("Failed to read file into memory");
+    }
+
+    Exchange publisher(host, port, "ITCH50", INITIAL_SEQUENCE, MAX_PACKET_SIZE);
 
     std::uint64_t messages_read = 0;
-    std::uint64_t previous_timestamp = 0;
-    bool first_message = true;
+    
+    const std::uint8_t* ptr = file_buffer.data();
+    const std::uint8_t* end = ptr + file_size;
 
-    while (true) {
-        char length_buffer[2];
+    auto start_time = std::chrono::steady_clock::now();
 
-        file.read(length_buffer, sizeof(length_buffer));
+    while (ptr + 2 <= end) 
+    {
+        const std::uint16_t message_length = 
+            std::byteswap(*reinterpret_cast<const std::uint16_t*>(ptr));
+        ptr += 2;
 
-        if (file.gcount() == 0)
-            break;
-
-        if (file.gcount() != 2) {
-            throw std::runtime_error("Truncated message length at EOF");
+        if (message_length == 0 || ptr + message_length > end) [[unlikely]] 
+        {
+            break; 
         }
 
-        const std::uint16_t message_length = md::read_16_bit(length_buffer);
-
-        if (message_length == 0) {
-            throw std::runtime_error("Invalid zero-length ITCH message");
-        }
-
-        std::vector<std::uint8_t> message(message_length);
-
-        file.read(reinterpret_cast<char*>(message.data()), message_length);
-
-        if (file.gcount() != message_length) {
-            break;
-            // throw std::runtime_error("Incomplete final ITCH message");
-        }
-
-        const std::uint64_t timestamp = md::read_timestamp_6(message.data() + 5);
-
-        if (!first_message) {
-            [[maybe_unused]] const std::uint64_t delta = timestamp - previous_timestamp;
-
-            if (messages_read % 100 == 0) {
-                constexpr std::uint64_t MAX_SLEEP_NS = 1'000'000;
-
-                std::this_thread::sleep_for(std::chrono::nanoseconds(MAX_SLEEP_NS));
+        if (messages_read > 0) [[likely]]
+        {
+            if (messages_read % 5000 == 0) [[unlikely]] 
+            {
+                constexpr std::chrono::nanoseconds MAX_SLEEP_NS{1'000'000};
+                std::this_thread::sleep_for(MAX_SLEEP_NS);
             }
 
-            if (messages_read % 50000 == 0) { // for debugging only
+            if (messages_read % 50000 == 0) [[unlikely]] 
+            {
                 std::cout << "Message " << messages_read << '\n';
             }
         }
 
-        previous_timestamp = timestamp;
-        first_message = false;
-
-        if (!publisher.publish(message.data(), message_length)) {
+        if (!publisher.publish(ptr, message_length)) [[unlikely]] 
+        {
             throw std::runtime_error("Failed to publish message");
         }
 
+        ptr += message_length;
         ++messages_read;
     }
 
@@ -86,10 +76,15 @@ int run_replay(const char* host, const char* port, const char* filename)
         throw std::runtime_error("Failed to send end-of-session packet");
     }
 
+    auto end_time = std::chrono::steady_clock::now();
+    double elapsed_sec = std::chrono::duration<double>(end_time - start_time).count();
+
     std::cout << "Replay complete\n"
               << "Messages read:  " << messages_read << '\n'
               << "Messages sent:  " << publisher.messages_sent() << '\n'
-              << "Packets sent:   " << publisher.packets_sent() << '\n';
+              << "Packets sent:   " << publisher.packets_sent() << '\n'
+              << "Elapsed time:   " << elapsed_sec << " seconds\n"
+              << "Paced Rate:     " << (publisher.messages_sent() / elapsed_sec) << " msg/s\n";
 
     return 0;
 }
