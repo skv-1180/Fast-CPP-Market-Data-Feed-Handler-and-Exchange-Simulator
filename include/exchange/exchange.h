@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <string>
 
-
 class Exchange
 {
 public:
@@ -19,7 +18,6 @@ public:
         SeqNo initial_sequence,
         std::size_t max_packet_size);
 
-    // Publish one message.
     bool publish(const std::uint8_t* data, std::size_t size);
 
     bool flush();

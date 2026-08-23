@@ -15,7 +15,6 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
     }
 
     const auto* header = reinterpret_cast<const MoldUDP64Header*>(data);
-    std::memcpy(session_data_.data(), header->session, SESSION_SIZE);
 
     sequence_number_ = std::byteswap(header->sequence_number);
     message_count_ = std::byteswap(header->message_count);
@@ -66,11 +65,13 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 
 std::string MoldUDP64Parser::session() const
 {
-    int len = 10;
-    while (len > 0 && session_data_[len - 1] == ' ') {
+    const auto* header = reinterpret_cast<const MoldUDP64Header*>(data_);
+
+    int len = SESSION_SIZE;
+    while (len > 0 && header->session[len - 1] == ' ') {
         --len;
     }
-    return std::string(session_data_.data(), len);
+    return std::string(header->session, len);
 }
 
 SeqNo MoldUDP64Parser::sequence_number() const

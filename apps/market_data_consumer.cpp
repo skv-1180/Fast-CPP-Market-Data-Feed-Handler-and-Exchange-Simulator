@@ -10,6 +10,23 @@
 #include <iostream>
 #include <vector>
 
+// Force the compiler to place this bloated I/O code far away from your hot loop
+__attribute__((noinline, cold))
+void log_invalid_packet() {
+    std::cerr << "Invalid MoldUDP64 packet\n";
+}
+
+__attribute__((noinline, cold))
+void log_heartbeat(std::uint64_t sequence) {
+    std::cout << "Heartbeat: sequence=" << sequence << '\n';
+}
+
+__attribute__((noinline, cold))
+void log_sequence_gap(std::uint64_t expected, std::uint64_t received) {
+    std::cerr << "Sequence gap/error: expected " << expected
+              << ", received " << received << '\n';
+}
+
 void run_market_data_consumer(const char* port )
 {
     constexpr std::size_t BUFFER_SIZE = 65536;
@@ -31,7 +48,8 @@ void run_market_data_consumer(const char* port )
     while (true) {
         std::size_t received = server.receive(buffer.data(), buffer.size());
 
-        if (received == 0) {
+        if (received == 0) [[unlikely]]
+        {
             continue;
         }
 
@@ -41,7 +59,7 @@ void run_market_data_consumer(const char* port )
 
         if (!mold_parser.parse(buffer.data(), received)) [[unlikely]]
         {
-            std::cerr << "Invalid MoldUDP64 packet\n";
+            log_invalid_packet();
             continue;
         }
 
@@ -50,28 +68,23 @@ void run_market_data_consumer(const char* port )
 
         if (mold_parser.is_heartbeat()) [[unlikely]]
         {
-            std::cout << "Heartbeat: sequence=" << sequence << '\n';
+            log_heartbeat(sequence);
             continue;
         }
 
         if (mold_parser.is_end_of_session()) [[unlikely]]
         {
-            std::cout << "End of session\n";
             break;
         }
 
         if (sequence != expected_sequence) [[unlikely]]
         {
-            std::cerr << "Sequence gap/error: expected " << expected_sequence
-                      << ", received " << sequence << '\n';
+            log_sequence_gap(expected_sequence, sequence);
         }
 
         for (std::size_t i = 0; i < message_count; ++i) {
             auto message = mold_parser.message(i);
-
             itch_parser.parse_single_message(message.data, message.size);
-
-            // ++messages_received;
         }
 
         messages_received += message_count;
