@@ -36,10 +36,11 @@ void run_market_data_consumer(const char* port )
         }
 
         ++packets_received;
-        
+
         auto start = std::chrono::steady_clock::now();
 
-        if (!mold_parser.parse(buffer.data(), received)) {
+        if (!mold_parser.parse(buffer.data(), received)) [[unlikely]]
+        {
             std::cerr << "Invalid MoldUDP64 packet\n";
             continue;
         }
@@ -47,17 +48,20 @@ void run_market_data_consumer(const char* port )
         const std::uint64_t sequence = mold_parser.sequence_number();
         const std::uint16_t message_count = mold_parser.message_count();
 
-        if (mold_parser.is_heartbeat()) {
+        if (mold_parser.is_heartbeat()) [[unlikely]]
+        {
             std::cout << "Heartbeat: sequence=" << sequence << '\n';
             continue;
         }
 
-        if (mold_parser.is_end_of_session()) {
+        if (mold_parser.is_end_of_session()) [[unlikely]]
+        {
             std::cout << "End of session\n";
             break;
         }
 
-        if (sequence != expected_sequence) {
+        if (sequence != expected_sequence) [[unlikely]]
+        {
             std::cerr << "Sequence gap/error: expected " << expected_sequence
                       << ", received " << sequence << '\n';
         }
@@ -67,10 +71,10 @@ void run_market_data_consumer(const char* port )
 
             itch_parser.parse_single_message(message.data, message.size);
 
-            ++messages_received;
+            // ++messages_received;
         }
 
-
+        messages_received += message_count;
         expected_sequence = sequence + message_count;
 
         auto end = std::chrono::steady_clock::now();

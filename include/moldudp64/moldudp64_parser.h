@@ -5,7 +5,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
-#include <vector>
+#include <array>
+
+#pragma pack(push, 1)
+struct MoldUDP64Header {
+    char session[10];
+    SeqNo sequence_number;
+    std::uint16_t message_count;
+};
+#pragma pack(pop)
+
 
 class MoldUDP64Parser 
 {
@@ -19,7 +28,7 @@ public:
     
     bool parse(const std::uint8_t* data, std::size_t size);
 
-    const std::string& session() const;
+    std::string session() const;
 
     SeqNo sequence_number() const;
 
@@ -41,9 +50,11 @@ private:
     const std::uint8_t* data_ = nullptr;
     std::size_t size_ = 0;
 
-    std::string session_;
+    std::array<char, SESSION_SIZE> session_data_{};
     SeqNo sequence_number_ = 0;
     std::uint16_t message_count_ = 0;
 
-    std::vector<std::size_t> message_offsets_;
+    std::array<std::uint16_t, MAX_MESSAGES_PER_PACKET> message_offsets_{};
+    std::array<std::uint16_t, MAX_MESSAGES_PER_PACKET> message_sizes_{};
+
 };

@@ -5,70 +5,72 @@
 #include <cstring>
 #include <limits>
 #include <stdexcept>
+#include <bit>
 
 bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 {
-    data_ = data;
-    size_ = size;
-
-    session_.clear();
-    sequence_number_ = 0;
-    message_count_ = 0;
-    message_offsets_.clear();
-
-    if (data_ == nullptr || size_ < HEADER_SIZE) 
+    if (size < sizeof(MoldUDP64Header)) [[unlikely]] 
     {
         return false;
     }
 
-    session_.assign(reinterpret_cast<const char*>(data_), SESSION_SIZE);
-    while (!session_.empty() && session_.back() == ' ') 
+    const auto* header = reinterpret_cast<const MoldUDP64Header*>(data);
+    std::memcpy(session_data_.data(), header->session, SESSION_SIZE);
+
+    sequence_number_ = std::byteswap(header->sequence_number);
+    message_count_ = std::byteswap(header->message_count);
+
+    if (message_count_ == 0 || message_count_ == END_OF_SESSION) [[unlikely]] 
     {
-        session_.pop_back();
+        return size == sizeof(MoldUDP64Header);
     }
 
-    sequence_number_ = md::read_64_bit(data_ + 10);
-    message_count_ = md::read_16_bit(data_ + 18);
-
-    // heartbeat or end_of_session packet
-    if (message_count_ == 0 || message_count_ == END_OF_SESSION) 
+    if (message_count_ > MAX_MESSAGES_PER_PACKET) [[unlikely]] 
     {
-        return size_ == HEADER_SIZE;
+        return false; 
     }
 
-    std::size_t offset = HEADER_SIZE;
-
-    message_offsets_.reserve(message_count_);
+    std::size_t offset = sizeof(MoldUDP64Header);
 
     for (std::uint16_t i = 0; i < message_count_; ++i) 
     {
-        if (offset + 2 > size_) 
+        if (offset + 2 > size) [[unlikely]] 
         {
             return false;
         }
 
-        const std::uint16_t message_size = md::read_16_bit(data_ + offset);
+        std::uint16_t msg_size = std::byteswap(*reinterpret_cast<const std::uint16_t*>(data + offset));
         offset += 2;
 
-        if (message_size == 0 || offset + message_size > size_) [[ unlikely ]] 
+        if (msg_size == 0 || offset + msg_size > size) [[unlikely]] 
         {
             return false;
         }
 
-        message_offsets_.push_back(offset);
-        offset += message_size;
+        message_offsets_[i] = static_cast<std::uint16_t>(offset);
+        message_sizes_[i] = msg_size;
+
+        offset += msg_size;
     }
 
-    if (offset != size_) {
+    if (offset != size) [[unlikely]] 
+    {
         return false;
     }
+
+    data_ = data;
+    size_ = size;
 
     return true;
 }
 
-const std::string& MoldUDP64Parser::session() const 
-{ 
-    return session_; 
+std::string MoldUDP64Parser::session() const
+{
+    int len = 10;
+    while (len > 0 && session_data_[len - 1] == ' ') {
+        --len;
+    }
+    return std::string(session_data_.data(), len);
 }
 
 SeqNo MoldUDP64Parser::sequence_number() const
@@ -88,9 +90,8 @@ MoldUDP64Parser::Message MoldUDP64Parser::message(std::size_t index) const
     // }
 
     const std::size_t offset = message_offsets_[index];
-    const std::uint16_t message_size = md::read_16_bit(data_ + offset - 2);
 
-    return Message { data_ + offset, message_size };
+    return Message { data_ + offset, message_sizes_[index] };
 }
 
 bool MoldUDP64Parser::is_heartbeat() const 
