@@ -1,41 +1,47 @@
 # Fast C++ Market Data Feed Handler (ITCH 5.0)
 
-A high-performance, zero-allocation feed handler and exchange simulator written. It replays historical NASDAQ ITCH 5.0 data over MoldUDP64 to simulate a live exchange, processing millions of messages a second to maintain a localized Limit Order Book.
+A high-performance, zero-allocation feed handler and exchange simulator written in C++23. It replays historical NASDAQ ITCH 5.0 data over MoldUDP64 to simulate a live exchange, processing millions of messages a second to maintain a localized Limit Order Book.
 
 ## System Flow
 
 The system is split into two halves: the Exchange (which streams the data) and the Consumer (which parses it and builds the order book).
 
-           EXCHANGE (Publisher) 
-       
-           [ ITCH File Replay ]
-                    │
-                    ▼
-           [ MoldUDP64 Packer ]
-                    │
-                    ▼
-           [ UDP Socket Client ]
-                    │
-               (UDP Network)
-                    │
-           CONSUMER (Receiver) 
-                    ▼
-           [ UDP Socket Server ]
-                    │
-                    ▼
+```text
+            EXCHANGE (Publisher) 
+            
+            [ ITCH File Replay ]
+                     │
+                     ▼
+            [ MoldUDP64 Packer ]
+                     │
+                     ▼
+            [ UDP Socket Client ]
+                     │
+                (UDP Network)
+                     │
+            CONSUMER (Receiver) 
+                     ▼
+            [ UDP Socket Server ]
+                     │
+                     ▼
           [ MoldUDP64 Unpacker ]
-                    │
-                    ▼
-            [ ITCH 5.0 Parser ]
-                    │
-                    ▼
-           [ Limit Order Book ]
+                     │
+                     ▼
+             [ ITCH 5.0 Parser ]
+                     │
+                     ▼
+            [ Limit Order Book ]
+
+```
+
 ---
 
 ## Getting Started
-Note: Built under the assumption that the host machine is Little-Endian.
+
+> **Note:** This project is built under the assumption that the host machine is **Little-Endian**.
 
 ### Dependencies
+
 Requires a C++23 compiler (GCC 13+) and the Boost library (`boost::container::flat_map`).
 
 ```bash
@@ -66,7 +72,7 @@ To test the live UDP pipeline, open two terminals:
 
 ```
 
-To benchmark the parser + order book
+To benchmark the parser + order book:
 
 ```bash
 ./build/benchmark_engine real_data/real_data_100_mb.bin
@@ -95,17 +101,20 @@ All benchmarks were executed in a standard **GitHub Codespace (4-Core CPU, 16GB 
 
 ### 1. Pure Engine Benchmark (In-Memory Offline)
 
-Measures the absolute maximum speed of the isolated Itch parser and OrderBook.
+Measures the absolute maximum speed of the isolated ITCH parser and OrderBook.
 
 * **100 MB Dataset:**
-  - **Messages Processed:** 3,406,528
-  - **Throughput:** **24.87 Million msg/sec**
-  - **Latency:** **40.19 ns / msg**
+     * **Messages Processed:** 3,406,528
+     * **Throughput:** **24.87 Million msg/sec**
+     * **Latency:** **40.19 ns / msg**
+
 
 * **500 MB Dataset:**
-  - **Messages Processed:** 15,336,144
-  - **Throughput:** **8.02 Million msg/sec**
-  - **Latency:** **124.66 ns / msg**
+     * **Messages Processed:** 15,336,144
+     * **Throughput:** **8.02 Million msg/sec**
+     * **Latency:** **124.66 ns / msg**
+
+
 
 ### 2. Live Simulation
 
@@ -117,9 +126,9 @@ Measures the absolute maximum speed of the isolated Itch parser and OrderBook.
 
 ## References & Resources
 
-* [NASDAQ ITCH 5.0 Specification](https://www.google.com/search?q=https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf)
+* [NASDAQ ITCH 5.0 Specification](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf)
 * [MoldUDP64 Protocol Specification](https://nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/moldudp64.pdf)
-* [Nasdaq Itch 5.0 Dataset](https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/)
+* [Nasdaq ITCH 5.0 Dataset](https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/)
 * [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/html/#getaddrinfoprepare-to-launch)
 * [CppCon: Carl Cook - "When a Microsecond Is an Eternity: High Performance Trading Systems in C++"](https://www.youtube.com/watch?v=NH1Tta7purM)
 * [Learn C++](https://www.learncpp.com/)
