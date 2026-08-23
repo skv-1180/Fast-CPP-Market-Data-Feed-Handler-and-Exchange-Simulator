@@ -9,7 +9,7 @@
 
 bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
 {
-    if (size < HEADER_SIZE) [[unlikely]] 
+    if (size < mold::HEADER_SIZE) [[unlikely]] 
     {
         return false;
     }
@@ -19,17 +19,17 @@ bool MoldUDP64Parser::parse(const std::uint8_t* data, std::size_t size)
     sequence_number_ = std::byteswap(header->sequence_number);
     message_count_ = std::byteswap(header->message_count);
 
-    if (message_count_ == 0 || message_count_ == END_OF_SESSION) [[unlikely]] 
+    if (message_count_ == 0 || message_count_ == mold::END_OF_SESSION) [[unlikely]] 
     {
-        return size == HEADER_SIZE;
+        return size == mold::HEADER_SIZE;
     }
 
-    if (message_count_ > MAX_MESSAGES_PER_PACKET) [[unlikely]] 
+    if (message_count_ > mold::MAX_MESSAGES_PER_PACKET) [[unlikely]] 
     {
         return false; 
     }
 
-    std::size_t offset = HEADER_SIZE;
+    std::size_t offset = mold::HEADER_SIZE;
 
     for (std::uint16_t i = 0; i < message_count_; ++i) 
     {
@@ -67,7 +67,7 @@ std::string MoldUDP64Parser::session() const
 {
     const auto* header = reinterpret_cast<const MoldUDP64Header*>(data_);
 
-    int len = SESSION_SIZE;
+    int len = mold::SESSION_SIZE;
     while (len > 0 && header->session[len - 1] == ' ') {
         --len;
     }
@@ -102,5 +102,5 @@ bool MoldUDP64Parser::is_heartbeat() const
 
 bool MoldUDP64Parser::is_end_of_session() const
 {
-    return message_count_ == END_OF_SESSION;
+    return message_count_ == mold::END_OF_SESSION;
 }

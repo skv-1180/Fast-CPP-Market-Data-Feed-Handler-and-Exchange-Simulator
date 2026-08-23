@@ -14,7 +14,7 @@ Exchange::Exchange(
     , next_sequence_ { initial_sequence }
     , max_packet_size_ { max_packet_size }
 {
-    if (max_packet_size_ < HEADER_SIZE)
+    if (max_packet_size_ < mold::HEADER_SIZE)
         throw std::invalid_argument(
             "max_packet_size must be at least HEADER_SIZE");
 }
@@ -28,7 +28,7 @@ bool Exchange::publish(const std::uint8_t* data, std::uint16_t size)
     const std::size_t required_size = 2 + size;
     
     // If the message itself cannot fit inside a packet, it cannot be published.
-    if (HEADER_SIZE + required_size > max_packet_size_) [[unlikely]] 
+    if (mold::HEADER_SIZE + required_size > max_packet_size_) [[unlikely]] 
     {
         return false;
     }

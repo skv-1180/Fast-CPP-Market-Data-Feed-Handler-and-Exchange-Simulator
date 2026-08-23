@@ -44,7 +44,7 @@ private:
     SeqNo sequence_number_{0};
     std::uint16_t message_count_{0};
 
-    std::array<std::uint16_t, MAX_MESSAGES_PER_PACKET> message_offsets_{};
-    std::array<std::uint16_t, MAX_MESSAGES_PER_PACKET> message_sizes_{};
+    std::array<std::uint16_t, mold::MAX_MESSAGES_PER_PACKET> message_offsets_{};
+    std::array<std::uint16_t, mold::MAX_MESSAGES_PER_PACKET> message_sizes_{};
 
 };

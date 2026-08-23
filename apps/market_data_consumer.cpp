@@ -37,7 +37,7 @@ void run_market_data_consumer(const char* port )
     Itch50Parser<Market> itch_parser(market);
     MoldUDP64Parser mold_parser;
 
-    std::uint64_t expected_sequence = INITIAL_SEQUENCE;
+    std::uint64_t expected_sequence = mold::INITIAL_SEQUENCE;
     std::uint64_t packets_received = 0;
     std::uint64_t messages_received = 0;
     std::uint64_t total_parse_time_ns = 0;
@@ -52,9 +52,9 @@ void run_market_data_consumer(const char* port )
             continue;
         }
 
-        ++packets_received;
-
         auto start = std::chrono::steady_clock::now();
+        
+        ++packets_received;
 
         if (!mold_parser.parse(buffer.data(), received)) [[unlikely]]
         {

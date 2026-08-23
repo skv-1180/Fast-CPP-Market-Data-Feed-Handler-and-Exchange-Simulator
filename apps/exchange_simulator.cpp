@@ -25,7 +25,7 @@ int run_replay(const char* host, const char* port, const char* filename)
         throw std::runtime_error("Failed to read file into memory");
     }
 
-    Exchange publisher(host, port, "ITCH50", INITIAL_SEQUENCE, MAX_PACKET_SIZE);
+    Exchange publisher(host, port, "ITCH50", mold::INITIAL_SEQUENCE, mold::MAX_PACKET_SIZE);
 
     std::uint64_t messages_read = 0;
     

@@ -37,7 +37,7 @@ public:
     MoldUDP64Packet& operator=(MoldUDP64Packet&&) = default;
 
 private:
-    std::array<std::uint8_t, MAX_PACKET_SIZE> buffer_{};
+    std::array<std::uint8_t, mold::MAX_PACKET_SIZE> buffer_{};
     std::size_t current_size_{0};
 
     SeqNo sequence_number_;
