@@ -34,6 +34,18 @@ The system is split into two halves: the Exchange (which streams the data) and t
 
 ```
 
+## Directory Structure
+```text
+├── apps/             # Executable entry points (consumer, exchange, benchmark)
+├── docs/             # Protocol specifications (NASDAQ ITCH 5.0, MoldUDP64)
+├── include/          # Public headers (.h)
+│   ├── common/       # Global type definitions and configurations
+│   ├── exchange/     # Exchange simulator logic
+│   ├── market/       # ITCH 5.0 parser, Limit Order Book, and Market state
+│   ├── moldudp64/    # MoldUDP64 packet builders and parsers
+│   └── network/      # UDP Client/Server socket wrappers
+└── src/              # Implementation files (.cpp) matching the include structure
+```
 ---
 
 ## Getting Started
