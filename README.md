@@ -143,4 +143,4 @@ Measures the absolute maximum speed of the isolated ITCH parser and OrderBook.
 * [Nasdaq ITCH 5.0 Dataset](https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/)
 * [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/html/#getaddrinfoprepare-to-launch)
 * [CppCon: Carl Cook - "When a Microsecond Is an Eternity: High Performance Trading Systems in C++"](https://www.youtube.com/watch?v=NH1Tta7purM)
-* [Learn C++](https://www.learncpp.com/)
+* [CppCon 2024: David Gross - "When Nanoseconds Matter: Ultrafast Trading Systems in C++"](https://youtu.be/sX2nF1fW7kI?si=T4qdBDuWy4nHkEuG)
