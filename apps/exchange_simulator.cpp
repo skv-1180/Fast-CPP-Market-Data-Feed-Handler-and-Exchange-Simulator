@@ -49,10 +49,10 @@ int run_replay(const char* host, const char* port, const char* filename)
                 std::this_thread::sleep_for(MAX_SLEEP_NS);
             }
 
-            if (messages_read % 50000 == 0) [[unlikely]] 
-            {
-                std::cout << "Message " << messages_read << '\n';
-            }
+            // if (messages_read % 50000 == 0) [[unlikely]] 
+            // {
+            //     std::cout << "Message " << messages_read << '\n';
+            // }
         }
 
         if (!publisher.publish(ptr, message_length)) [[unlikely]] 

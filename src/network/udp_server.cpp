@@ -34,7 +34,7 @@ UdpServer::UdpServer(const char* sender_port)
         }
 
         // Increase UDP receive buffer
-        int receive_buffer = 16 * 1024 * 1024; // 16 MB
+        int receive_buffer = 16 * 1024 * 1024; 
         if (setsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &receive_buffer, sizeof(receive_buffer)) == -1)
         {
             close(socket_fd_);
@@ -43,12 +43,12 @@ UdpServer::UdpServer(const char* sender_port)
         }
 
         // Check the actual buffer size assigned by the kernel
-        int actual_buffer = 0;
-        socklen_t actual_buffer_len = sizeof(actual_buffer);
-        if (getsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &actual_buffer, &actual_buffer_len) == 0)
-        {
-            std::cout << "UDP receive buffer: " << actual_buffer << " bytes\n";
-        }
+        // int actual_buffer = 0;
+        // socklen_t actual_buffer_len = sizeof(actual_buffer);
+        // if (getsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &actual_buffer, &actual_buffer_len) == 0)
+        // {
+        //     std::cout << "UDP receive buffer: " << actual_buffer << " bytes\n";
+        // }
 
         if (bind(socket_fd_, p->ai_addr, p->ai_addrlen) == -1)
         {
@@ -68,8 +68,6 @@ UdpServer::UdpServer(const char* sender_port)
 
         throw std::system_error(saved_errno, std::generic_category(), "Failed to bind UDP server socket");
     }
-
-    std::cout << "Server started successfully!\n";
 }
 
 UdpServer::~UdpServer()
@@ -79,7 +77,6 @@ UdpServer::~UdpServer()
 
     if (serv_info != nullptr)
         freeaddrinfo(serv_info);
-    std::cout << "Server closed!" << std::endl;
 }
 
 std::size_t UdpServer::receive(std::uint8_t* data, std::size_t size)

@@ -109,7 +109,7 @@ void run_market_data_consumer(const char* port )
         << " M msg/s\n";
     
 
-    market.print_best_bid_ask();
+    // market.print_best_bid_ask();
 }
 
 int main(int argc, char* argv[])
